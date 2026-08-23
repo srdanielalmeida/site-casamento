@@ -64,6 +64,10 @@
     `;
   }
 
+  function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   // Identificar rótulo do botão (sugestão de presente)
   function getStoreLabel(url) {
     return 'Ver Sugestão';
@@ -140,6 +144,9 @@
 
       const comprado = comprados.find(c => c.id === id);
       const storeLabel = getStoreLabel(item.link);
+      const couponSacolaHtml = (item.coupon && item.coupon.trim() !== '')
+        ? `<div class="sacola-item-coupon" title="Cupom disponível">🏷️ Cupom: <strong>${escapeHtml(item.coupon)}</strong></div>`
+        : '';
 
       const hasImage = item.image && item.image.trim() !== '';
       const imgHtml = hasImage
@@ -177,6 +184,7 @@
           ${imgHtml}
           <div class="sacola-item-info">
             <span class="sacola-item-name">${item.name}</span>
+            ${couponSacolaHtml}
             <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="sacola-item-store">${storeLabel} →</a>
           </div>
           <div class="sacola-item-actions">
@@ -324,6 +332,18 @@
       ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="#C9A84C" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
       : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" stroke="currentColor" stroke-width="1.5"/></svg>`;
 
+    const couponHtml = (item.coupon && item.coupon.trim() !== '')
+      ? `
+        <div class="pr-item-coupon" data-copy-coupon="${escapeHtml(item.coupon)}" title="Clique para copiar o cupom de desconto">
+          <div class="pr-item-coupon-left">
+            <span>🏷️ Cupom:</span>
+            <strong class="pr-item-coupon-code">${escapeHtml(item.coupon)}</strong>
+          </div>
+          <span class="pr-item-coupon-btn">Copiar</span>
+        </div>
+      `
+      : '';
+
     return `
       <article class="pr-item-card ${separadoClass}" style="animation-delay: ${index * 0.08}s">
         <div class="pr-item-img-wrap">
@@ -335,6 +355,7 @@
         </div>
         <div class="pr-item-body">
           <h3 class="pr-item-name">${item.name}</h3>
+          ${couponHtml}
           <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="pr-item-btn" title="${storeLabel}">
             ${storeLabel}
             <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
@@ -458,6 +479,35 @@
     });
   }
 
+
+  // Copiar cupom de desconto ao clicar
+  document.addEventListener('click', (e) => {
+    const couponEl = e.target.closest('[data-copy-coupon]');
+    if (couponEl) {
+      e.preventDefault();
+      e.stopPropagation();
+      const code = couponEl.dataset.copyCoupon;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          const btn = couponEl.querySelector('.pr-item-coupon-btn');
+          if (btn) {
+            const orig = btn.textContent;
+            btn.textContent = '✓ Copiado!';
+            btn.style.color = '#2e7d32';
+            btn.style.borderColor = '#2e7d32';
+            setTimeout(() => {
+              btn.textContent = orig;
+              btn.style.color = '';
+              btn.style.borderColor = '';
+            }, 2000);
+          }
+          mostrarToastCompra(`Cupom "${code}" copiado com sucesso!`);
+        });
+      } else {
+        prompt('Copie o cupom de desconto abaixo:', code);
+      }
+    }
+  });
 
   // ────────────────────────────────────────────────────────────
   // 5. PARALLAX HERO

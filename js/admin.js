@@ -115,9 +115,21 @@
             name: it.name,
             image: it.image || '',
             link: it.link || '',
-            category: it.category || null
+            category: it.category || null,
+            coupon: it.coupon || ''
           }));
-          await sb.from('presentes_itens').upsert(itemsToSave);
+          const { error: itemErr } = await sb.from('presentes_itens').upsert(itemsToSave);
+          if (itemErr) {
+            console.warn('[Supabase] Tentando salvar sem coluna coupon...', itemErr);
+            const itemsWithoutCoupon = data.items.map(it => ({
+              id: it.id,
+              name: it.name,
+              image: it.image || '',
+              link: it.link || '',
+              category: it.category || null
+            }));
+            await sb.from('presentes_itens').upsert(itemsWithoutCoupon);
+          }
         }
       } catch (err) {
         console.warn('[Supabase] Erro ao sincronizar alterações:', err);
@@ -298,6 +310,7 @@
           </div>
           ${statusBadge}
           <span class="admin-item-cat-badge">${catName}</span>
+          ${item.coupon ? `<span class="admin-item-cat-badge" style="background:rgba(212,175,55,0.15); border-color:rgba(212,175,55,0.4); color:var(--gold-light);" title="Cupom de Desconto">🏷️ ${escapeHtml(item.coupon)}</span>` : ''}
           <div class="admin-item-actions">
             ${forcarBtn}
             <button class="admin-btn-icon" title="Editar" data-edit-item="${item.id}">
@@ -437,6 +450,7 @@
   const itemLink = document.getElementById('item-link');
   const itemCategory = document.getElementById('item-category');
   const itemImage = document.getElementById('item-image');
+  const itemCoupon = document.getElementById('item-coupon');
 
   btnAddItem.addEventListener('click', () => {
     editingItemId = null;
@@ -446,6 +460,7 @@
     itemLink.value = '';
     itemCategory.value = '';
     itemImage.value = '';
+    if (itemCoupon) itemCoupon.value = '';
     formItem.hidden = false;
     itemName.focus();
   });
@@ -466,6 +481,7 @@
     itemLink.value = item.link;
     itemCategory.value = item.category;
     itemImage.value = item.image || '';
+    if (itemCoupon) itemCoupon.value = item.coupon || '';
     formItem.hidden = false;
     itemName.focus();
   }
@@ -475,6 +491,7 @@
     const link = itemLink.value.trim();
     const category = itemCategory.value;
     const image = itemImage.value.trim();
+    const coupon = itemCoupon ? itemCoupon.value.trim() : '';
 
     if (!name || !link || !category) {
       if (!name) itemName.focus();
@@ -491,6 +508,7 @@
         item.link = link;
         item.category = category;
         item.image = image;
+        item.coupon = coupon;
       }
     } else {
       // Adicionar novo
@@ -499,7 +517,8 @@
         name,
         image,
         link,
-        category
+        category,
+        coupon
       });
     }
 

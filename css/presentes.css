@@ -389,19 +389,23 @@
 .pr-item-img-wrap {
   aspect-ratio: 4/3;
   overflow: hidden;
-  background: #F5F2EB;
+  background: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
   border-bottom: 1px solid rgba(201, 168, 76, 0.18);
   position: relative;
+  padding: 1.2rem;
 }
 
 .pr-item-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transition: transform 0.4s ease;
 }
 
 .pr-item-card:hover .pr-item-img {
@@ -453,6 +457,87 @@
   letter-spacing: 0.3px;
   color: #1A1108;
   line-height: 1.5;
+}
+
+/* Cupom de desconto no card */
+.pr-item-coupon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, rgba(201, 168, 76, 0.12) 0%, rgba(201, 168, 76, 0.04) 100%);
+  border: 1px dashed rgba(201, 168, 76, 0.65);
+  border-radius: 4px;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.pr-item-coupon:hover {
+  background: linear-gradient(135deg, rgba(201, 168, 76, 0.22) 0%, rgba(201, 168, 76, 0.08) 100%);
+  border-color: #B5933B;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(201, 168, 76, 0.15);
+}
+
+.pr-item-coupon-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-simple);
+  font-size: 0.82rem;
+  color: #5A472E;
+}
+
+.pr-item-coupon-code {
+  font-family: var(--font-cormorant-sc, serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #7A5F14;
+  text-transform: uppercase;
+}
+
+.pr-item-coupon-btn {
+  font-family: var(--font-cormorant-sc, serif);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #0B1E3D;
+  background: #FFFFFF;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  padding: 0.25rem 0.55rem;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.pr-item-coupon:hover .pr-item-coupon-btn {
+  background: #FAF5E8;
+  border-color: #C9A84C;
+}
+
+/* Cupom na sacola */
+.sacola-item-coupon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.76rem;
+  color: #7A5F14;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px dashed rgba(201, 168, 76, 0.5);
+  padding: 0.25rem 0.6rem;
+  border-radius: 3px;
+  margin-top: 0.35rem;
+  cursor: pointer;
+  width: fit-content;
+  transition: all 0.2s ease;
+}
+
+.sacola-item-coupon:hover {
+  background: rgba(201, 168, 76, 0.2);
+  border-color: #B5933B;
 }
 
 /* Botão do produto */
@@ -955,7 +1040,9 @@
 .sacola-item-img {
   width: 52px;
   height: 52px;
-  object-fit: cover;
+  object-fit: contain;
+  background: #FFFFFF;
+  padding: 3px;
   border: 1px solid rgba(201, 168, 76, 0.15);
   flex-shrink: 0;
 }

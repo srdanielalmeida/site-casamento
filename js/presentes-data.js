@@ -65,63 +65,72 @@ const PRESENTES_DEFAULT_DATA = {
       name: 'Máquina de Lavar Electrolux 13kg Cesto Inox LDA13',
       image: '',
       link: 'https://meli.la/2Nkjpde',
-      category: 'eletrodomesticos'
+      category: 'eletrodomesticos',
+      coupon: ''
     },
     {
       id: 2,
       name: 'Micro-ondas Electrolux 36L Efficient ME36B',
       image: '',
       link: 'https://meli.la/1fXrNjP',
-      category: 'eletrodomesticos'
+      category: 'eletrodomesticos',
+      coupon: ''
     },
     {
       id: 3,
       name: 'Geladeira Brastemp Frost Free 385L Duplex BRM46MB',
       image: '',
       link: 'https://meli.la/31ckSg7',
-      category: 'eletrodomesticos'
+      category: 'eletrodomesticos',
+      coupon: ''
     },
     {
       id: 4,
       name: 'Ar Condicionado Split Inverter TCL 12000 BTUs',
       image: '',
       link: 'https://meli.la/1s8jazq',
-      category: 'eletrodomesticos'
+      category: 'eletrodomesticos',
+      coupon: ''
     },
     {
       id: 5,
       name: 'Ar-condicionado Split Inverter 12000 BTU Prime Air',
       image: '',
       link: 'https://meli.la/2BS4pS9',
-      category: 'eletrodomesticos'
+      category: 'eletrodomesticos',
+      coupon: ''
     },
     {
       id: 6,
       name: 'Cadeira Escritório Presidente Ergonômica 42 Molas Ensacadas',
       image: '',
       link: 'https://meli.la/1p5ihHG',
-      category: 'moveis'
+      category: 'moveis',
+      coupon: ''
     },
     {
       id: 7,
       name: 'Poltrona Amamentação Balanço Giratória com Puff',
       image: '',
       link: 'https://meli.la/1LhJCyc',
-      category: 'moveis'
+      category: 'moveis',
+      coupon: ''
     },
     {
       id: 8,
       name: 'Panela de Pressão Brinox 4,2L Vanilla',
       image: '',
       link: 'https://meli.la/2ycxPcb',
-      category: 'cozinha'
+      category: 'cozinha',
+      coupon: ''
     },
     {
       id: 9,
       name: 'Jogo Talheres Faqueiro Búzios 24 Peças Tramontina',
       image: '',
       link: 'https://meli.la/17gPHkE',
-      category: 'cozinha'
+      category: 'cozinha',
+      coupon: ''
     }
   ]
 };
