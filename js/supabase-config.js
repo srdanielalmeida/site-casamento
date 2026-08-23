@@ -4,10 +4,10 @@
 
 const SUPABASE_CONFIG = {
   // Cole aqui a URL do seu projeto Supabase (ex: https://xyzcompany.supabase.co)
-  url: '',
-  
+  url: 'https://pvlutyubkbynxvswoqsv.supabase.co',
+
   // Cole aqui a sua chave anônima pública (anon public key)
-  anonKey: ''
+  anonKey: 'sb_publishable_P1w7HgkB-jMc-wf9lzTq6Q_i0JC654g'
 };
 
 let _supabaseInstance = null;
