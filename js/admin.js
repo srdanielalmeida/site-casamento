@@ -73,19 +73,50 @@
     }
   }
 
-  function loadData() {
+  async function loadData() {
     data = getPresentesData();
     updateSupabaseStatusBadge();
 
-    // Se o Supabase estiver configurado, atualiza da nuvem em segundo plano
-    if (typeof fetchPresentesDataFromSupabase === 'function') {
-      fetchPresentesDataFromSupabase().then((cloudData) => {
+    // Se o Supabase estiver configurado, busca presentes E confirmações RSVP da nuvem
+    const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+    if (sb) {
+      try {
+        const [cloudData, rsvpRes] = await Promise.all([
+          typeof fetchPresentesDataFromSupabase === 'function' ? fetchPresentesDataFromSupabase() : null,
+          sb.from('rsvp_confirmacoes').select('*').order('created_at', { ascending: false })
+        ]);
+
         if (cloudData && cloudData.items && cloudData.items.length > 0) {
           data = cloudData;
-          renderAll();
-          updateSupabaseStatusBadge();
+          // Sincroniza itens marcados como comprados da nuvem para o cache
+          const compradosDaNuvem = cloudData.items
+            .filter(it => it.is_purchased)
+            .map(it => ({
+              id: it.id,
+              timestamp: it.purchased_at || new Date().toISOString(),
+              nomeConvidado: it.purchased_by || ''
+            }));
+          if (compradosDaNuvem.length > 0) {
+            saveCompradosList(compradosDaNuvem);
+          }
         }
-      });
+
+        if (!rsvpRes.error && Array.isArray(rsvpRes.data)) {
+          const mappedRsvp = rsvpRes.data.map(r => ({
+            id: r.id,
+            nome: r.nome,
+            mensagem: r.mensagem || '',
+            timestamp: r.created_at || r.timestamp || new Date().toISOString(),
+            created_at: r.created_at || r.timestamp
+          }));
+          localStorage.setItem(LS_ALL_CONFIRMS, JSON.stringify(mappedRsvp));
+        }
+
+        renderAll();
+        updateSupabaseStatusBadge();
+      } catch (err) {
+        console.warn('[Supabase] Erro ao sincronizar dados no admin:', err);
+      }
     }
   }
 
@@ -611,6 +642,15 @@
     return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
+  function normalizarNome(str) {
+    return (str || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[\s,&+]+/g, ' ')
+      .trim();
+  }
+
   function renderRsvpList() {
     const container = document.getElementById('rsvp-list');
     const counter   = document.getElementById('rsvp-counter');
@@ -621,22 +661,64 @@
       ? [...CONVIDADOS_LISTA].sort((a, b) => a.localeCompare(b, 'pt-BR'))
       : [];
 
-    const totalConvidados = convidados.length;
-    const confirmadosCount = lista.length;
-
-    if (counter) {
-      counter.textContent = `${confirmadosCount} de ${totalConvidados} confirmados (${totalConvidados - confirmadosCount} pendentes)`;
-    }
-
-    // Mapa de confirmações por nome (case-insensitive)
+    // Mapa de confirmações por nome normalizado
     const mapConfirmados = new Map();
     lista.forEach(c => {
       if (c && c.nome) {
-        mapConfirmados.set(c.nome.toLowerCase().trim(), c);
+        mapConfirmados.set(normalizarNome(c.nome), c);
       }
     });
 
+    let confirmadosCount = 0;
+    convidados.forEach(nome => {
+      if (mapConfirmados.has(normalizarNome(nome))) {
+        confirmadosCount++;
+      }
+    });
+
+    // Convidados confirmados que não estão na lista pré-definida
+    const extrasConfirmados = lista.filter(c => c && c.nome && !convidados.some(oficial => normalizarNome(oficial) === normalizarNome(c.nome)));
+
+    const totalConfirmados = confirmadosCount + extrasConfirmados.length;
+    const totalConvidados = convidados.length + extrasConfirmados.length;
+
+    if (counter) {
+      counter.textContent = `${totalConfirmados} de ${totalConvidados} confirmados (${convidados.length - confirmadosCount} pendentes)`;
+    }
+
     const baseUrl = window.location.origin + window.location.pathname.replace(/admin\.html.*$/i, '') + 'rsvp.html';
+
+    const renderRow = (nome, conf, isExtra = false) => {
+      const isConfirmed = !!conf;
+      const guestUrl = `${baseUrl}?c=${encodeURIComponent(nome)}`;
+      const rawData = conf ? (conf.timestamp || conf.created_at) : '';
+      const dataHora = conf ? formatarData(rawData) : '<span class="admin-rsvp-empty-msg">—</span>';
+
+      return `
+        <tr class="${isConfirmed ? 'admin-rsvp-row-confirmed' : 'admin-rsvp-row-pending'}">
+          <td style="white-space:nowrap;">
+            <span class="admin-item-status ${isConfirmed ? 'admin-item-status-comprado' : 'admin-item-status-disponivel'}">
+              ${isConfirmed ? '✓ Confirmado' : '⏳ Pendente'}
+            </span>
+          </td>
+          <td class="admin-rsvp-nome" style="color:${isConfirmed ? 'var(--gold-light, #e8c86a)' : 'rgba(245,237,214,0.7)'}">
+            <strong>${escapeHtml(nome)}</strong>
+            ${isExtra ? '<span style="font-size:0.72rem; color:var(--gold-light); display:block; opacity:0.8;">(Confirmação em Nuvem)</span>' : ''}
+          </td>
+          <td style="white-space:nowrap;">
+            <button type="button" class="admin-btn admin-btn-outline admin-btn-sm btn-copy-guest-link" data-url="${escapeHtml(guestUrl)}" data-name="${escapeHtml(nome)}" title="Copiar link nominal deste convidado">
+              📋 Copiar Link
+            </button>
+          </td>
+          <td class="admin-rsvp-data">
+            ${dataHora}
+          </td>
+          <td class="admin-rsvp-msg">
+            ${isConfirmed && conf.mensagem ? escapeHtml(conf.mensagem) : '<span class="admin-rsvp-empty-msg">—</span>'}
+          </td>
+        </tr>
+      `;
+    };
 
     container.innerHTML = `
       <div style="margin-bottom:1.2rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
@@ -656,33 +738,11 @@
         </thead>
         <tbody>
           ${convidados.map((nome) => {
-            const conf = mapConfirmados.get(nome.toLowerCase().trim());
-            const isConfirmed = !!conf;
-            const guestUrl = `${baseUrl}?c=${encodeURIComponent(nome)}`;
-
-            return `
-              <tr class="${isConfirmed ? 'admin-rsvp-row-confirmed' : 'admin-rsvp-row-pending'}">
-                <td style="white-space:nowrap;">
-                  <span class="admin-item-status ${isConfirmed ? 'admin-item-status-comprado' : 'admin-item-status-disponivel'}">
-                    ${isConfirmed ? '✓ Confirmado' : '⏳ Pendente'}
-                  </span>
-                </td>
-                <td class="admin-rsvp-nome" style="color:${isConfirmed ? 'var(--gold-light, #e8c86a)' : 'rgba(245,237,214,0.7)'}">
-                  <strong>${escapeHtml(nome)}</strong>
-                </td>
-                <td style="white-space:nowrap;">
-                  <button type="button" class="admin-btn admin-btn-outline admin-btn-sm btn-copy-guest-link" data-url="${escapeHtml(guestUrl)}" data-name="${escapeHtml(nome)}" title="Copiar link nominal deste convidado">
-                    📋 Copiar Link
-                  </button>
-                </td>
-                <td class="admin-rsvp-data">
-                  ${isConfirmed ? formatarData(conf.timestamp) : '<span class="admin-rsvp-empty-msg">—</span>'}
-                </td>
-                <td class="admin-rsvp-msg">
-                  ${isConfirmed && conf.mensagem ? escapeHtml(conf.mensagem) : '<span class="admin-rsvp-empty-msg">—</span>'}
-                </td>
-              </tr>
-            `;
+            const conf = mapConfirmados.get(normalizarNome(nome));
+            return renderRow(nome, conf, false);
+          }).join('')}
+          ${extrasConfirmados.map((c) => {
+            return renderRow(c.nome, c, true);
           }).join('')}
         </tbody>
       </table>`;
@@ -718,14 +778,14 @@
 
     const mapConfirmados = new Map();
     lista.forEach(c => {
-      if (c && c.nome) mapConfirmados.set(c.nome.toLowerCase().trim(), c);
+      if (c && c.nome) mapConfirmados.set(normalizarNome(c.nome), c);
     });
 
     const header = ['#', 'Status', 'Nome/Família', 'Data/Hora Confirmação', 'Mensagem'];
     const rows = convidados.map((nome, i) => {
-      const conf = mapConfirmados.get(nome.toLowerCase().trim());
+      const conf = mapConfirmados.get(normalizarNome(nome));
       const status = conf ? 'CONFIRMADO' : 'PENDENTE';
-      const dataHora = conf ? formatarData(conf.timestamp) : '';
+      const dataHora = conf ? formatarData(conf.timestamp || conf.created_at) : '';
       const msg = conf && conf.mensagem ? conf.mensagem : '';
       return [
         i + 1,
@@ -734,6 +794,19 @@
         `"${dataHora.replace(/"/g, '""')}"`,
         `"${msg.replace(/"/g, '""')}"`,
       ];
+    });
+
+    // Extras
+    const extras = lista.filter(c => c && c.nome && !convidados.some(oficial => normalizarNome(oficial) === normalizarNome(c.nome)));
+    extras.forEach((c, idx) => {
+      const dataHora = formatarData(c.timestamp || c.created_at);
+      rows.push([
+        convidados.length + idx + 1,
+        `"CONFIRMADO"`,
+        `"${(c.nome || '').replace(/"/g, '""')}"`,
+        `"${dataHora.replace(/"/g, '""')}"`,
+        `"${(c.mensagem || '').replace(/"/g, '""')}"`
+      ]);
     });
 
     const csv = [header, ...rows].map((r) => r.join(',')).join('\n');
