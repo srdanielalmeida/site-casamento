@@ -3,8 +3,8 @@
    Estilo da Barra de Navegação (Cabeçalho Real Luxo)
    ========================================================================== */
 
-/* Imports de Fontes Clássicas do Google Fonts: Cormorant Garamond + Cormorant SC + Alex Brush */
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600;1,700&family=Cormorant+SC:wght@300;400;500;600;700&family=Alex+Brush&display=swap');
+/* Imports de Fontes Clássicas do Google Fonts: Cormorant Garamond + Cormorant SC + Pinyon Script + Great Vibes + Alex Brush */
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600;1,700&family=Cormorant+SC:wght@300;400;500;600;700&family=Great+Vibes&family=Parisienne&family=Pinyon+Script&display=swap');
 
 :root {
   /* Paleta Real Azul Marinho e Dourado (Minimalista) */
@@ -34,7 +34,7 @@
   --font-serif-dec: 'Cormorant Garamond', Georgia, serif;
   --font-body: 'Times New Roman', Times, Georgia, serif;
   --font-simple: 'Times New Roman', Times, Georgia, serif;
-  --font-script: 'Aston Script', 'Aston Script Bold', 'Alex Brush', cursive;
+  --font-script: 'Aston Script', 'Aston Script Bold', 'Pinyon Script', 'Great Vibes', 'Alex Brush', cursive;
 
   --header-height: 90px;
   --header-height-scrolled: 75px;
