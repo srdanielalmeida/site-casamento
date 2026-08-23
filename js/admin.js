@@ -247,7 +247,7 @@
 
     // Event listeners para deletar
     list.querySelectorAll('[data-delete-cat]').forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const catId = btn.dataset.deleteCat;
         const count = data.items.filter((i) => i.category === catId).length;
         if (count > 0) {
@@ -255,7 +255,21 @@
           data.items = data.items.filter((i) => i.category !== catId);
         }
         data.categories = data.categories.filter((c) => c.id !== catId);
-        save();
+        savePresentesData(data);
+        renderAll();
+
+        // Remove imediatamente do Supabase na nuvem
+        const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+        if (sb) {
+          try {
+            if (count > 0) {
+              await sb.from('presentes_itens').delete().eq('category', catId);
+            }
+            await sb.from('presentes_categorias').delete().eq('id', catId);
+          } catch (e) {
+            console.warn('[Supabase] Erro ao deletar categoria na nuvem:', e);
+          }
+        }
       });
     });
   }
@@ -334,12 +348,24 @@
     });
 
     list.querySelectorAll('[data-delete-item]').forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = parseInt(btn.dataset.deleteItem);
         const item = data.items.find((i) => i.id === id);
         if (item && confirm(`Remover "${item.name}" da lista?`)) {
           data.items = data.items.filter((i) => i.id !== id);
-          save();
+          savePresentesData(data);
+          renderAll();
+
+          // Remove imediatamente do Supabase na nuvem
+          const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+          if (sb) {
+            try {
+              const { error } = await sb.from('presentes_itens').delete().eq('id', id);
+              if (error) console.warn('[Supabase] Erro ao deletar item:', error);
+            } catch (e) {
+              console.warn('[Supabase] Erro ao deletar item:', e);
+            }
+          }
         }
       });
     });
@@ -537,11 +563,23 @@
   // ────────────────────────────────────────────────────────────
   // 6. RESTAURAR DADOS PADRÃO
   // ────────────────────────────────────────────────────────────
-  document.getElementById('btn-reset-data').addEventListener('click', () => {
+  document.getElementById('btn-reset-data').addEventListener('click', async () => {
     if (confirm('Tem certeza? Todas as alterações feitas serão perdidas e os dados serão restaurados para o padrão.')) {
       localStorage.removeItem('presentes_data');
-      loadData();
+      data = JSON.parse(JSON.stringify(PRESENTES_DEFAULT_DATA));
+      savePresentesData(data);
       renderAll();
+
+      const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+      if (sb) {
+        try {
+          await sb.from('presentes_itens').delete().neq('id', 0);
+          await sb.from('presentes_categorias').delete().neq('id', '');
+          await save();
+        } catch (e) {
+          console.warn('[Supabase] Erro ao resetar banco na nuvem:', e);
+        }
+      }
     }
   });
 
@@ -754,6 +792,10 @@ const PRESENTES_DEFAULT_DATA = ${JSON.stringify(data, null, 2)};
       btnSyncCloud.disabled = true;
       btnSyncCloud.textContent = '⏳ Sincronizando...';
 
+      // 1. Envia estado atual para a nuvem
+      await save();
+
+      // 2. Busca estado mais recente
       if (typeof fetchPresentesDataFromSupabase === 'function') {
         const cloudData = await fetchPresentesDataFromSupabase();
         if (cloudData) {
