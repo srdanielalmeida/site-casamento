@@ -442,6 +442,22 @@
   renderContent('todos');
   atualizarBadgeSacola();
 
+  // Sincronização em segundo plano com a nuvem (Supabase)
+  if (typeof fetchPresentesDataFromSupabase === 'function') {
+    fetchPresentesDataFromSupabase().then((newData) => {
+      if (newData && newData.items && newData.items.length > 0) {
+        data.categories = newData.categories;
+        data.items = newData.items;
+        if (catMenuEl) {
+          catMenuEl.querySelectorAll('.pr-cat-btn:not(#cat-todos)').forEach(b => b.remove());
+        }
+        renderCategoryButtons();
+        renderContent(activeCategory);
+        atualizarBadgeSacola();
+      }
+    });
+  }
+
 
   // ────────────────────────────────────────────────────────────
   // 5. PARALLAX HERO

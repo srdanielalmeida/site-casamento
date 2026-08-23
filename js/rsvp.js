@@ -268,6 +268,19 @@
 
   verificarConfirmacaoExistente();
 
+  // Sincroniza lista global de confirmações com o Supabase em segundo plano
+  async function sincronizarConfirmadosDaNuvem() {
+    const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+    if (!sb) return;
+    try {
+      const { data, error } = await sb.from('rsvp_confirmacoes').select('*');
+      if (!error && Array.isArray(data) && data.length > 0) {
+        localStorage.setItem(LS_ALL_CONFIRMS, JSON.stringify(data));
+      }
+    } catch (_) {}
+  }
+  sincronizarConfirmadosDaNuvem();
+
 
   // ────────────────────────────────────────────────────────────
   // 7. HELPERS
@@ -392,6 +405,21 @@
         lista.push(confirmacao);
       }
       localStorage.setItem(LS_ALL_CONFIRMS, JSON.stringify(lista));
+
+      // Sincroniza com Supabase na nuvem se disponível
+      const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+      if (sb) {
+        try {
+          await sb.from('rsvp_confirmacoes').upsert({
+            id: confirmacao.id,
+            nome: confirmacao.nome,
+            mensagem: confirmacao.mensagem,
+            created_at: confirmacao.timestamp
+          });
+        } catch (sbErr) {
+          console.warn('[Supabase] Erro ao salvar confirmação na nuvem:', sbErr);
+        }
+      }
 
       aplicarDadosSucesso(confirmacao);
 

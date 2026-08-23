@@ -180,6 +180,28 @@
         <div class="admin-stats" id="admin-stats"></div>
       </section>
 
+      <!-- ── SINCRONIZAÇÃO EM NUVEM & BACKUP ── -->
+      <section class="admin-section">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">☁️ Sincronização em Nuvem &amp; Backup</h2>
+          <span id="supabase-status-badge" class="admin-item-status" style="font-size:0.78rem;">Verificando conexão...</span>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.6; margin-bottom:1.2rem;">
+          Quando conectado ao <strong>Supabase</strong>, todos os presentes adicionados e confirmações de presença são salvos em tempo real na nuvem e nunca somem em novos deploys. Você também pode baixar o arquivo <code>presentes-data.js</code> a qualquer momento como backup do código-fonte.
+        </p>
+        <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
+          <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" id="btn-export-presentes-file">
+            📥 Baixar presentes-data.js
+          </button>
+          <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" id="btn-copy-presentes-json">
+            📋 Copiar JSON dos Presentes
+          </button>
+          <button type="button" class="admin-btn admin-btn-primary admin-btn-sm" id="btn-sync-cloud">
+            🔄 Sincronizar com a Nuvem
+          </button>
+        </div>
+      </section>
+
       <!-- ── AÇÕES ── -->
       <section class="admin-section admin-section-actions-bar">
         <div class="admin-danger-zone">
@@ -194,8 +216,10 @@
     </main>
   </div>
 
-  <script src="js/presentes-data.js"></script>
-  <script src="js/convidados-data.js"></script>
-  <script src="js/admin.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js?v=1.0"></script>
+  <script src="js/presentes-data.js?v=5.0"></script>
+  <script src="js/convidados-data.js?v=5.0"></script>
+  <script src="js/admin.js?v=5.0"></script>
 </body>
 </html>

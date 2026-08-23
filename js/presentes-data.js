@@ -127,9 +127,7 @@ const PRESENTES_DEFAULT_DATA = {
 };
 
 /**
- * Retorna os dados dos presentes.
- * Prioriza dados do localStorage (editados via admin).
- * Caso não haja dados no localStorage, retorna os dados padrão.
+ * Retorna os dados dos presentes do cache local.
  */
 function getPresentesData() {
   try {
@@ -151,6 +149,35 @@ function getPresentesData() {
  */
 function savePresentesData(data) {
   localStorage.setItem('presentes_data', JSON.stringify(data));
+}
+
+/**
+ * Busca dados em nuvem do Supabase de forma assíncrona.
+ * Se configurado, atualiza o cache local e retorna os dados mais recentes.
+ */
+async function fetchPresentesDataFromSupabase() {
+  const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+  if (!sb) return getPresentesData();
+
+  try {
+    const [catsRes, itemsRes] = await Promise.all([
+      sb.from('presentes_categorias').select('*').order('ordem', { ascending: true }),
+      sb.from('presentes_itens').select('*').order('id', { ascending: true })
+    ]);
+
+    if (catsRes.error) throw catsRes.error;
+    if (itemsRes.error) throw itemsRes.error;
+
+    const categories = (catsRes.data && catsRes.data.length > 0) ? catsRes.data : PRESENTES_DEFAULT_DATA.categories;
+    const items = (itemsRes.data && itemsRes.data.length > 0) ? itemsRes.data : PRESENTES_DEFAULT_DATA.items;
+
+    const data = { categories, items };
+    savePresentesData(data);
+    return data;
+  } catch (err) {
+    console.warn('[Supabase] Falha ao buscar presentes da nuvem, usando cache local:', err);
+    return getPresentesData();
+  }
 }
 
 
@@ -210,19 +237,34 @@ function isItemComprado(id) {
 }
 
 /**
- * Marca um item como comprado.
+ * Marca um item como comprado (no localStorage e no Supabase).
  * @param {number} id
  * @param {string} [nomeConvidado]
  */
-function marcarComoComprado(id, nomeConvidado) {
+async function marcarComoComprado(id, nomeConvidado) {
   const list = getCompradosList();
   if (!list.some(c => c.id === id)) {
-    list.push({
+    const registro = {
       id,
       timestamp: new Date().toISOString(),
       nomeConvidado: nomeConvidado || ''
-    });
+    };
+    list.push(registro);
     saveCompradosList(list);
+
+    // Sincroniza com Supabase se disponível
+    const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+    if (sb) {
+      try {
+        await sb.from('presentes_itens').update({
+          is_purchased: true,
+          purchased_by: nomeConvidado || '',
+          purchased_at: new Date().toISOString()
+        }).eq('id', id);
+      } catch (e) {
+        console.warn('[Supabase] Erro ao marcar comprado na nuvem:', e);
+      }
+    }
   }
 }
 
@@ -230,7 +272,21 @@ function marcarComoComprado(id, nomeConvidado) {
  * Desmarca um item como comprado (restaurar).
  * @param {number} id
  */
-function desmarcarComprado(id) {
+async function desmarcarComprado(id) {
   const list = getCompradosList().filter(c => c.id !== id);
   saveCompradosList(list);
+
+  // Sincroniza com Supabase se disponível
+  const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+  if (sb) {
+    try {
+      await sb.from('presentes_itens').update({
+        is_purchased: false,
+        purchased_by: '',
+        purchased_at: null
+      }).eq('id', id);
+    } catch (e) {
+      console.warn('[Supabase] Erro ao desmarcar comprado na nuvem:', e);
+    }
+  }
 }

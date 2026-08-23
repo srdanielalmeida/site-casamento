@@ -56,15 +56,73 @@
   });
 
   // ────────────────────────────────────────────────────────────
-  // 2. DADOS
+  // 2. DADOS & SUPABASE
   // ────────────────────────────────────────────────────────────
-  function loadData() {
-    data = getPresentesData();
+  function updateSupabaseStatusBadge() {
+    const badge = document.getElementById('supabase-status-badge');
+    if (!badge) return;
+
+    if (typeof isSupabaseConfigured === 'function' && isSupabaseConfigured()) {
+      badge.textContent = '🟢 Nuvem Conectada (Supabase)';
+      badge.className = 'admin-item-status admin-item-status-disponivel';
+      badge.style.borderColor = 'rgba(76, 175, 80, 0.4)';
+    } else {
+      badge.textContent = '🟡 Modo Local (Offline / localStorage)';
+      badge.className = 'admin-item-status';
+      badge.style.borderColor = 'rgba(212, 175, 55, 0.4)';
+    }
   }
 
-  function save() {
+  function loadData() {
+    data = getPresentesData();
+    updateSupabaseStatusBadge();
+
+    // Se o Supabase estiver configurado, atualiza da nuvem em segundo plano
+    if (typeof fetchPresentesDataFromSupabase === 'function') {
+      fetchPresentesDataFromSupabase().then((cloudData) => {
+        if (cloudData && cloudData.items && cloudData.items.length > 0) {
+          data = cloudData;
+          renderAll();
+          updateSupabaseStatusBadge();
+        }
+      });
+    }
+  }
+
+  async function save() {
     savePresentesData(data);
     renderAll();
+
+    // Sincroniza em nuvem se o Supabase estiver ativo
+    const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+    if (sb) {
+      try {
+        // Upsert categorias
+        if (data.categories && data.categories.length > 0) {
+          const catsToSave = data.categories.map((c, idx) => ({
+            id: c.id,
+            name: c.name,
+            icon: c.icon || '',
+            ordem: idx + 1
+          }));
+          await sb.from('presentes_categorias').upsert(catsToSave);
+        }
+
+        // Upsert itens
+        if (data.items && data.items.length > 0) {
+          const itemsToSave = data.items.map(it => ({
+            id: it.id,
+            name: it.name,
+            image: it.image || '',
+            link: it.link || '',
+            category: it.category || null
+          }));
+          await sb.from('presentes_itens').upsert(itemsToSave);
+        }
+      } catch (err) {
+        console.warn('[Supabase] Erro ao sincronizar alterações:', err);
+      }
+    }
   }
 
   function getNextItemId() {
@@ -631,6 +689,68 @@
     a.click();
     URL.revokeObjectURL(url);
   });
+
+  // ── Exportar presentes-data.js ──
+  const btnExportFile = document.getElementById('btn-export-presentes-file');
+  if (btnExportFile) {
+    btnExportFile.addEventListener('click', () => {
+      const code = `/* ==========================================================================
+   PRESENTES DATA — Dados dos presentes e Categorias
+   ========================================================================== */
+
+const PRESENTES_DEFAULT_DATA = ${JSON.stringify(data, null, 2)};
+`;
+      const blob = new Blob([code], { type: 'application/javascript;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement('a'), {
+        href: url,
+        download: 'presentes-data.js',
+      });
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // ── Copiar JSON de presentes ──
+  const btnCopyJson = document.getElementById('btn-copy-presentes-json');
+  if (btnCopyJson) {
+    btnCopyJson.addEventListener('click', () => {
+      const json = JSON.stringify(data, null, 2);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(json).then(() => {
+          const original = btnCopyJson.textContent;
+          btnCopyJson.textContent = '✓ JSON Copiado!';
+          setTimeout(() => { btnCopyJson.textContent = original; }, 2000);
+        });
+      } else {
+        prompt('Copie o JSON abaixo:', json);
+      }
+    });
+  }
+
+  // ── Sincronizar Manualmente com Nuvem ──
+  const btnSyncCloud = document.getElementById('btn-sync-cloud');
+  if (btnSyncCloud) {
+    btnSyncCloud.addEventListener('click', async () => {
+      btnSyncCloud.disabled = true;
+      btnSyncCloud.textContent = '⏳ Sincronizando...';
+
+      if (typeof fetchPresentesDataFromSupabase === 'function') {
+        const cloudData = await fetchPresentesDataFromSupabase();
+        if (cloudData) {
+          data = cloudData;
+          renderAll();
+          updateSupabaseStatusBadge();
+        }
+      }
+
+      setTimeout(() => {
+        btnSyncCloud.disabled = false;
+        btnSyncCloud.textContent = '✓ Sincronizado!';
+        setTimeout(() => { btnSyncCloud.textContent = '🔄 Sincronizar com a Nuvem'; }, 2000);
+      }, 600);
+    });
+  }
 
   // Limpar confirmações
   document.getElementById('btn-clear-rsvp').addEventListener('click', () => {
