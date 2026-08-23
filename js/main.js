@@ -60,6 +60,13 @@ function renderHeader() {
 
   header.innerHTML = `
     <div class="header-container">
+      <!-- Brasão / Sinete Mobile (Canto Esquerdo) -->
+      <a href="${SITE_CONFIG.header.crest.href}" class="header-mobile-brand" aria-label="${SITE_CONFIG.header.crest.ariaLabel}">
+        <div class="mobile-crest-wrapper">
+          <img src="${SITE_CONFIG.header.crest.imgSrc}" alt="${SITE_CONFIG.header.crest.alt}" class="mobile-crest-img">
+        </div>
+      </a>
+
       <nav class="nav-menu" id="nav-menu" aria-label="Navegação Principal">
         <ul class="nav-list nav-list-left">
           ${leftHtml}
