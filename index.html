@@ -1,154 +1,375 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daniel & Franciellen Maria - Casamento</title>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daniel & Franciellen Maria | Casamento</title>
+  <meta name="description"
+    content="Site oficial do casamento de Daniel Ribeiro de Almeida & Franciellen Maria Feitosa do Nascimento - 31 de Outubro de 2026.">
+
+  <!-- Favicon / Brasão -->
+  <link rel="icon" type="image/png" href="images/brasao/Gemini_Generated_Image_cqwzlmcqwzlmcqwz 1.png">
+
+  <!-- Estilos da Aplicação -->
+  <link rel="stylesheet" href="css/style.css?v=4.7">
 </head>
+
 <body>
 
-    <!-- Header Navigation -->
-    <header id="main-header">
-        <div class="nav-container">
-            <a href="#" class="logo">D & F</a>
-            <nav>
-                <ul class="nav-links">
-                    <li><a href="#inicio">Início</a></li>
-                    <li><a href="#historia">Nossa História</a></li>
-                    <li><a href="#local">Local</a></li>
-                    <li><a href="#presentes">Presentes</a></li>
-                </ul>
-            </nav>
-            <div class="hamburger">
-                <i class="fas fa-bars"></i>
-            </div>
-        </div>
-    </header>
+  <!-- ==========================================================================
+       SEÇÃO 1: CABEÇALHO DA PÁGINA (HEADER NAV)
+       ========================================================================== -->
+  <header class="site-header" id="header">
+    <div class="header-container">
 
-    <!-- Hero Section -->
-    <section id="inicio" class="hero">
-        <div class="hero-content fade-in">
-            <img src="images/brasao/brasao.png" alt="Brasão Daniel e Franciellen" class="hero-crest" onerror="this.onerror=null; this.src='images/brasao/brasao (1).jpg'">
-            <h4 class="save-the-date">SAVE THE DATE</h4>
-            <h1 class="couple-names">Daniel <span>&</span> Franciellen Maria</h1>
-            <div class="date-time">
-                <p class="date">31 de Outubro de 2026, Sábado</p>
-                <p class="time">16:00</p>
-            </div>
+      <!-- Brasão / Sinete Mobile (Canto Esquerdo) -->
+      <a href="brasao.html" class="header-mobile-brand" aria-label="Ver o Brasão da Família Almeida">
+        <div class="mobile-crest-wrapper">
+          <img src="images/brasao/Gemini_Generated_Image_cqwzlmcqwzlmcqwz 1.png" alt="Brasão Daniel e Franciellen"
+            class="mobile-crest-img">
         </div>
+      </a>
+
+      <!-- Menu de Navegação -->
+      <nav class="nav-menu" id="nav-menu" aria-label="Navegação Principal">
+
+        <!-- Links da Esquerda -->
+        <ul class="nav-list nav-list-left">
+          <li><a href="index.html" class="nav-link active">Início</a></li>
+          <li><a href="informacoes.html" class="nav-link">Informações</a></li>
+        </ul>
+
+        <!-- Monograma / Brasão Central -->
+        <a href="brasao.html" class="header-brand" aria-label="Ver o Brasão da Família Almeida">
+          <div class="brand-crest-wrapper">
+            <img src="images/brasao/Gemini_Generated_Image_cqwzlmcqwzlmcqwz 1.png" alt="Brasão Daniel e Franciellen"
+              class="brand-crest-img">
+          </div>
+        </a>
+
+        <!-- Links da Direita -->
+        <ul class="nav-list nav-list-right">
+          <li><a href="rsvp.html" class="nav-link">RSVP</a></li>
+          <li><a href="presentes.html" class="nav-link">Presentes</a></li>
+        </ul>
+
+      </nav>
+
+      <!-- Botão Hambúrguer Mobile -->
+      <button class="mobile-toggle" id="mobile-toggle" aria-label="Abrir Menu de Navegação">
+        <div class="hamburger-icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       CONTEÚDO PRINCIPAL (INÍCIO)
+       ========================================================================== -->
+  <main>
+    <!-- SEÇÃO 2: HERO (BANNER PRINCIPAL) -->
+    <section class="hero-section" id="hero">
+      <div class="hero-overlay"></div>
+
+      <div class="hero-content">
+
+        <!-- Texto Introdutório -->
+        <div class="hero-grace-text">COM A GRAÇA DE DEUS E A BÊNÇÃO DE SEUS PAIS</div>
+
+        <!-- Nomes do Casal -->
+        <h1 class="hero-title">
+          <span class="hero-name-full">Daniel Ribeiro de Almeida</span>
+          <span class="hero-name-short">Daniel R. de Almeida</span>
+          <span class="hero-ampersand">&</span>
+          <span class="hero-name-full">Franciellen Maria Feitosa do Nascimento</span>
+          <span class="hero-name-short">Franciellen M. F. do Nascimento</span>
+        </h1>
+
+        <!-- Moldura Nobre de Data -->
+        <div class="hero-date-badge">
+          <div class="hero-date-main">31 de Outubro de 2026</div>
+          <div class="hero-date-sub">Para Todo o Sempre</div>
+        </div>
+
+      </div>
     </section>
 
-    <!-- Quote 1 & Intro -->
-    <section class="intro section-padding">
-        <div class="container fade-in">
-            <blockquote class="main-quote">
-                "Aonde fores irei, onde ficares ficarei! O teu povo será o meu povo e o teu Deus será o meu Deus!."
-            </blockquote>
-            <p class="invitation-text">
-                Com imensa alegria, convidamos você para celebrar o momento mais especial de nossas vidas.
-            </p>
-        </div>
-        <img src="images/elementos/Para-legenda.png" alt="Elemento Decorativo" class="decorative-element" onerror="this.style.display='none'">
-    </section>
+    <!-- SEÇÃO 3: CONTAGEM REGRESSIVA (COUNTDOWN) -->
+    <section class="countdown-section" id="countdown">
+      <div class="countdown-container">
 
-    <!-- Gallery / Our Story -->
-    <section id="historia" class="gallery section-padding bg-light">
-        <div class="container">
-            <h2 class="section-title fade-in">Nossa História</h2>
-            <div class="gallery-grid">
-                <div class="gallery-item fade-in">
-                    <img src="images/galeria/Gemini_Generated_Image_ciitheciitheciit.png" alt="Aquarela Daniel e Ellie">
-                </div>
-                <div class="gallery-item fade-in delay-1">
-                    <img src="images/galeria/Gemini_Generated_Image_obcezrobcezrobce.png" alt="Aquarela Daniel e Ellie">
-                </div>
-                <div class="gallery-item fade-in delay-2">
-                    <img src="images/galeria/Gemini_Generated_Image_eq8md4eq8md4eq8m.png" alt="Aquarela Daniel e Ellie">
-                </div>
-                <div class="gallery-item fade-in">
-                    <img src="images/galeria/Gemini_Generated_Image_x1opftx1opftx1op.png" alt="Aquarela Daniel e Ellie">
-                </div>
-                <div class="gallery-item fade-in delay-1">
-                    <img src="images/galeria/Gemini_Generated_Image_1glxcz1glxcz1glx1.png" alt="Aquarela Daniel e Ellie">
-                </div>
-                <div class="gallery-item fade-in delay-2">
-                    <img src="images/galeria/Gemini_Generated_Image_ohaep2ohaep2ohae.png" alt="Aquarela Daniel e Ellie">
-                </div>
+        <!-- Título FALTAM com Linhas Horizontais e Losangos -->
+        <div class="countdown-header">
+          <div class="countdown-line"></div>
+          <h2 class="countdown-title">FALTAM</h2>
+          <div class="countdown-line"></div>
+        </div>
+
+        <!-- Blocos Numéricos da Contagem -->
+        <div class="countdown-body">
+          <div class="countdown-ornament ornament-left">
+            <img src="images/elementos/SL_101320_36700_32-[Convertido]1122.png" alt="Ornamento Esquerda"
+              class="countdown-side-img">
+          </div>
+
+          <div class="countdown-grid">
+            <div class="countdown-box">
+              <span class="countdown-number" id="cd-days">00</span>
+              <span class="countdown-label">DIAS</span>
             </div>
-        </div>
-    </section>
 
-    <!-- Location & Map -->
-    <section id="local" class="location section-padding">
-        <div class="container">
-            <h2 class="section-title fade-in">Cerimônia</h2>
-            <blockquote class="secondary-quote fade-in">
-                "Para que todos vejam, e saibam, e considerem, e juntamente entendam que a mão do Senhor fez isso."
-            </blockquote>
-            <div class="location-content fade-in">
-                <div class="location-details">
-                    <img src="images/galeria/igreja.jpeg" alt="Paróquia Nossa Senhora de Nazaré" class="church-img" onerror="this.style.display='none'">
-                    <h3>Paróquia Nossa Senhora de Nazaré</h3>
-                    <p>Folha 16, Nova Marabá</p>
-                    <p>Marabá, PA</p>
-                    <a href="https://maps.app.goo.gl/9y5H64hVvXqTpHwz8" target="_blank" class="btn btn-primary">Ver no Google Maps <i class="fas fa-map-marker-alt"></i></a>
-                </div>
-                <div class="map-container">
-                    <!-- Google Maps Embed for "Paróquia Nossa Senhora de Nazaré, Marabá, PA" -->
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3972.7663242130767!2d-49.12461322409543!3d-5.367069353761794!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x92c3a0780af55269%3A0xc4a3cb0a84e3dfcf!2sPar%C3%B3quia%20Nossa%20Senhora%20de%20Nazar%C3%A9!5e0!3m2!1spt-BR!2sbr!4v1717540232422!5m2!1spt-BR!2sbr" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                </div>
+            <div class="countdown-divider"></div>
+
+            <div class="countdown-box">
+              <span class="countdown-number" id="cd-hours">00</span>
+              <span class="countdown-label">HORAS</span>
             </div>
-        </div>
-    </section>
 
-    <!-- Gifts Section -->
-    <section id="presentes" class="gifts section-padding bg-light">
-        <div class="container fade-in">
-            <h2 class="section-title">Lista de Presentes</h2>
-            <p class="gifts-intro">Sua presença é o nosso maior presente! Mas caso queira nos abençoar de outra forma, disponibilizamos as opções abaixo:</p>
-            
-            <div class="gifts-grid">
-                <a href="#" class="gift-card amazon">
-                    <i class="fab fa-amazon"></i>
-                    <h3>Lista na Amazon</h3>
-                    <p>Presentes para nossa casa</p>
-                </a>
-                <a href="#" class="gift-card mercadopago">
-                    <i class="fas fa-hand-holding-usd"></i>
-                    <h3>Mercado Pago</h3>
-                    <p>Contribua com qualquer valor</p>
-                </a>
-                <div class="gift-card pix" id="pix-card">
-                    <i class="fab fa-pix"></i>
-                    <h3>PIX</h3>
-                    <p>Chave: casamento@danieleellen.com</p>
-                    <button class="btn btn-outline" onclick="copyPix()">Copiar Chave</button>
-                </div>
+            <div class="countdown-divider"></div>
+
+            <div class="countdown-box">
+              <span class="countdown-number" id="cd-minutes">00</span>
+              <span class="countdown-label">MINUTOS</span>
             </div>
+
+            <div class="countdown-divider"></div>
+
+            <div class="countdown-box">
+              <span class="countdown-number" id="cd-seconds">00</span>
+              <span class="countdown-label">SEGUNDOS</span>
+            </div>
+          </div>
+
+          <div class="countdown-ornament ornament-right">
+            <img src="images/elementos/SL_101320_36700_32-[Convertido]111.png" alt="Ornamento Direita"
+              class="countdown-side-img">
+          </div>
         </div>
+
+      </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="main-footer">
-        <div class="container fade-in">
-            <h2 class="footer-highlight">"Para todo o sempre"</h2>
-            <p class="footer-names">Daniel & Franciellen Maria</p>
-            <p class="footer-date">31.10.2026</p>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 danieleellen.com - Feito com amor.</p>
-        </div>
-    </footer>
+    <!-- ==========================================================================
+         SEÇÃO 4: CONVITE (INVITATION)
+         ========================================================================== -->
+    <section class="invitation-section" id="convite">
+      <!-- Bordas ornamentais simuladas (podem ser substituídas por imagens depois) -->
+      <div class="invitation-border-top"></div>
 
-    <!-- Scripts -->
-    <script src="script.js"></script>
+      <div class="invitation-container">
+        <!-- Lado Esquerdo: Ornamento Lateral -->
+        <div class="invitation-side-img left-img">
+          <img src="images/elementos/invitation-ornament.svg" alt="Ornamento Lateral Esquerdo"
+            class="invitation-ornament-img">
+        </div>
+
+        <!-- Centro: Texto do Convite -->
+        <div class="invitation-content">
+          <h2 class="invitation-title">TEMOS A HONRA DE CONVIDÁ-LOS</h2>
+
+          <div class="invitation-text">
+            <p>para testemunhar a união que o Senhor preparou desde a eternidade.</p>
+            <br>
+            <p>Entre a solenidade da fé, a beleza do amor verdadeiro e a alegria de nossas famílias, convidamos você a
+              participar deste momento sagrado, em que nossos corações se unem diante de Deus para iniciar uma nova
+              história fundada na fé, no amor e na verdade.</p>
+            <br>
+            <p>Que sua presença seja parte desta aliança abençoada e eterna.</p>
+          </div>
+        </div>
+
+        <!-- Lado Direito: Ornamento Lateral -->
+        <div class="invitation-side-img right-img">
+          <img src="images/elementos/invitation-ornament.svg" alt="Ornamento Lateral Direito"
+            class="invitation-ornament-img">
+        </div>
+      </div>
+
+      <div class="invitation-border-bottom"></div>
+    </section>
+  </main>
+
+  <!-- ======================================================================
+       SEÇÃO 5: O GRANDE DIA
+       ====================================================================== -->
+  <section class="grande-dia-section" id="grande-dia">
+
+    <!-- Título decorativo com Flancos Ornamentais Reais do SVG -->
+    <div class="section-header-ornament">
+      <div class="ornament-flank ornament-flank-left">
+        <img src="images/elementos/grande-dia-flanco-esq.svg" alt="Ornamento Lateral Esquerdo" class="flank-svg">
+      </div>
+      <div class="ornament-center">
+        <h2 class="grande-dia-title">O Grande Dia</h2>
+      </div>
+      <div class="ornament-flank ornament-flank-right">
+        <img src="images/elementos/grande-dia-flanco-dir.svg" alt="Ornamento Lateral Direito" class="flank-svg">
+      </div>
+    </div>
+
+    <!-- Cards de Evento -->
+    <div class="grande-dia-cards">
+
+      <!-- Card Cerimônia -->
+      <div class="event-card">
+        <div class="event-card-icon">
+          <!-- Ícone Igreja Solicitado -->
+          <svg class="event-icon-svg" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="goldGradChurch" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#dfab5d" />
+                <stop offset="30%" stop-color="#fcf3c2" />
+                <stop offset="70%" stop-color="#eedaa2" />
+                <stop offset="100%" stop-color="#bf8637" />
+              </linearGradient>
+            </defs>
+            <g fill="url(#goldGradChurch)">
+              <polygon
+                points="181.574,145.396 330.426,145.396 263.547,68.755 263.547,35.94 279.08,35.94 279.08,20.844 263.547,20.844 263.547,0 248.453,0 248.453,20.844 232.933,20.844 232.933,35.94 248.453,35.94 248.453,68.755" />
+              <path
+                d="M330.426,283.158V161.24H181.574v121.918l-120.665,94.19l16.263,20.825l9.815-7.667V512h52.235h71.508h90.555 h123.742v-13.443v-108.05l9.816,7.667l16.249-20.825L330.426,283.158z M170.167,471.909h-37.723v-43.865 c0-10.412,8.449-18.862,18.862-18.862s18.862,8.449,18.862,18.862V471.909z M237.151,215.816c0-10.419,8.436-18.862,18.849-18.862 c10.412,0,18.862,8.442,18.862,18.862v47.639h-37.711V215.816z M250.35,498.557h-39.62V372.4h39.62V498.557z M301.285,498.557 h-39.62V372.4h39.62V498.557z M379.557,471.909h-37.711v-43.865c0-10.412,8.436-18.862,18.862-18.862 c10.412,0,18.849,8.449,18.849,18.862V471.909z" />
+              <rect x="234.936" y="431.804" width="6.287" height="15.088" />
+              <rect x="270.777" y="431.804" width="6.287" height="15.088" />
+            </g>
+          </svg>
+        </div>
+        <p class="event-type">CERIMÔNIA RELIGIOSA</p>
+        <h3 class="event-time">16h00</h3>
+        <div class="event-divider">
+          <span class="event-divider-diamond"></span>
+        </div>
+        <p class="event-location">Paróquia Nossa Senhora de Nazaré</p>
+        <p class="event-city">Nova Marabá, Marabá – PA</p>
+        <a href="https://maps.google.com/?q=Paróquia+Nossa+Senhora+de+Nazaré+Nova+Marabá+Marabá+PA" target="_blank"
+          class="event-btn">VER LOCAL</a>
+      </div>
+
+      <!-- Divisor Vertical -->
+      <div class="event-divider-vertical"></div>
+
+      <!-- Card Recepção -->
+      <div class="event-card">
+        <div class="event-card-icon">
+          <!-- Ícone Fazenda Solicitado -->
+          <svg class="event-icon-svg" viewBox="0 0 486.809 486.809" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="goldGradFarm" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#dfab5d" />
+                <stop offset="30%" stop-color="#fcf3c2" />
+                <stop offset="70%" stop-color="#eedaa2" />
+                <stop offset="100%" stop-color="#bf8637" />
+              </linearGradient>
+            </defs>
+            <g fill="url(#goldGradFarm)">
+              <path
+                d="M486.804,260.418L382.855,70.512L243.404,0L103.953,70.512L0.005,260.418l26.316,14.404l22.143-40.453v252.439h389.881 V234.37l22.143,40.453L486.804,260.418z M221.948,373.059l-64.545,63.106V309.952L221.948,373.059z M243.404,394.037l64.203,62.772 H179.201L243.404,394.037z M264.861,373.059l64.545-63.106v126.213L264.861,373.059z M243.404,352.081l-64.203-62.772h128.407 L243.404,352.081z M408.345,456.809h-48.938v-197.5H127.402v197.5H78.464V179.562l47.335-86.478l117.605-59.466L361.01,93.083 l47.335,86.478V456.809z" />
+              <path d="M193.404,219.309h100v-100h-100V219.309z M223.404,149.309h40v40h-40V149.309z" />
+            </g>
+          </svg>
+        </div>
+        <p class="event-type">RECEPÇÃO</p>
+        <h3 class="event-time">17h45</h3>
+        <div class="event-divider">
+          <span class="event-divider-diamond"></span>
+        </div>
+        <p class="event-location">Rancho Nascimento</p>
+        <p class="event-city">Nova Marabá, Marabá – PA</p>
+        <a href="https://maps.app.goo.gl/Bbgvi7g3qm4rZybv8" target="_blank" rel="noopener noreferrer"
+          class="event-btn">VER LOCAL</a>
+      </div>
+
+    </div>
+
+    <!-- Arabesco Decorativo Inferior -->
+    <div class="grande-dia-bottom-arabesque">
+      <img src="images/elementos/grande-dia-arabesco.svg" alt="Arabesco Inferior" class="bottom-arabesque-svg">
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       SEÇÃO 6: LINKS RÁPIDOS (3 CARDS)
+       ====================================================================== -->
+  <section class="quick-links-section" id="links">
+    <div class="quick-links-grid">
+
+      <!-- 1. Lista de Presentes -->
+      <div class="quick-card">
+        <div class="quick-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="100%" height="100%">
+            <path fill="#dfab5d"
+              d="M10.1 5c2-0.3 3.9-1.1 2.2-3.6-0.7-1-1.4-1.4-2-1.4-1 0-1.7 1.1-2.3 2.2-0.6-1.1-1.3-2.2-2.3-2.2-0.6 0-1.3 0.4-2 1.4-1.8 2.5 0.2 3.3 2.2 3.6h-5.9v3h16v-3h-5.9zM10.3 1c0.1 0 0.5 0.1 1.2 1 0.5 0.7 0.6 1.1 0.5 1.3-0.2 0.3-1.3 0.7-3.3 0.8 0-0.2-0.1-0.4-0.2-0.6 0.6-1.4 1.3-2.5 1.8-2.5zM4 3.3c-0.1-0.2 0-0.6 0.5-1.3 0.7-0.9 1.1-1 1.2-1 0.5 0 1.2 1.1 1.8 2.5-0.1 0.2-0.2 0.4-0.2 0.6-2-0.1-3.1-0.5-3.3-0.8zM7 7v-2h2v2h-2z" />
+            <path fill="#dfab5d" d="M9 15h-2v-6h-6v7h14v-7h-6z" />
+          </svg>
+        </div>
+        <h3 class="quick-card-title">LISTA DE PRESENTES</h3>
+        <p class="quick-card-desc">Sua presença é nossa maior alegria. Caso deseje nos presentear, confira nossa lista com opções preparadas com muito carinho.</p>
+        <a href="presentes.html" class="quick-card-btn">PRESENTEAR</a>
+      </div>
+
+      <!-- 2. Informações -->
+      <div class="quick-card">
+        <div class="quick-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%">
+            <path fill="#dfab5d"
+              d="M11.29,15.29a1.58,1.58,0,0,0-.12.15.76.76,0,0,0-.09.18.64.64,0,0,0-.06.18,1.36,1.36,0,0,0,0,.2.84.84,0,0,0,.08.38.9.9,0,0,0,.54.54.94.94,0,0,0,.76,0,.9.9,0,0,0,.54-.54A1,1,0,0,0,13,16a1,1,0,0,0-.29-.71A1,1,0,0,0,11.29,15.29ZM12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8,8,0,0,1,12,20ZM12,7A3,3,0,0,0,9.4,8.5a1,1,0,1,0,1.73,1A1,1,0,0,1,12,9a1,1,0,0,1,0,2,1,1,0,0,0-1,1v1a1,1,0,0,0,2,0v-.18A3,3,0,0,0,12,7Z" />
+          </svg>
+        </div>
+        <h3 class="quick-card-title">INFORMAÇÕES</h3>
+        <p class="quick-card-desc">Todos os detalhes para o grande dia: roteiro, trajes sugeridos, localização do evento e dicas úteis para os convidados.</p>
+        <a href="informacoes.html" class="quick-card-btn">SAIBA MAIS</a>
+      </div>
+
+      <!-- 3. Confirmar Presença -->
+      <div class="quick-card">
+        <div class="quick-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 448" width="100%" height="100%">
+            <path fill="#dfab5d"
+              d="m 338.21437,193.63145 0,189.27613 -40.2457,0 0,-143.7921 c -2.21458,1.95905 -4.85504,3.83293 -7.92138,5.62162 -2.98116,1.70352 -6.17527,3.27928 -9.58231,4.72727 -3.40704,1.36282 -6.94185,2.55529 -10.60442,3.5774 -3.66258,0.93694 -7.28256,1.61835 -10.85995,2.04423 l 0,-33.98526 c 10.47666,-3.06634 20.35708,-6.98444 29.64128,-11.7543 9.28419,-4.76986 17.67403,-10.00819 25.16953,-15.71499 z m -223.19793,181.29729 0,-35.13513 c 12.26535,8.94349 26.57493,13.41523 42.92875,13.41523 10.3063,0 18.31285,-2.21458 24.01965,-6.64373 5.79197,-4.42916 8.68796,-10.60443 8.68796,-18.5258 0,-8.17691 -3.5774,-14.47994 -10.73219,-18.90909 -7.06962,-4.42916 -16.82228,-6.64374 -29.25798,-6.64374 l -16.99263,0 0,-30.91891 15.71499,0 c 23.8493,0 35.77395,-7.92138 35.77395,-23.76413 0,-14.90581 -9.15643,-22.35872 -27.46928,-22.35872 -12.26536,0 -24.19002,3.96069 -35.77396,11.88206 l 0,-32.96314 c 12.86159,-6.47338 27.85258,-9.71007 44.97297,-9.71007 18.73874,0 33.30385,4.21621 43.69533,12.64864 10.47666,8.43243 15.71499,19.37756 15.71499,32.83538 0,23.93448 -12.13759,38.92547 -36.41277,44.97297 l 0,0.63882 c 12.94676,1.61835 23.16788,6.34562 30.66338,14.18182 7.4955,7.75103 11.24325,17.29075 11.24325,28.61917 0,17.12039 -6.26045,30.66338 -18.78133,40.62899 -12.52088,9.9656 -29.81163,14.9484 -51.87223,14.9484 -18.9091,0 -34.28338,-3.06634 -46.12285,-9.19902 z M 126.36548,4.1342066 c -25.14949,0 -45.396189,21.1289414 -45.396189,47.3743084 l 0,15.791436 -30.264126,0 c -16.766325,0 -30.264125,14.085961 -30.264125,31.582873 l 0,315.828726 c 0,17.49691 13.4978,31.58287 30.264125,31.58287 l 363.169505,0 c 16.76633,0 30.26413,-14.08596 30.26413,-31.58287 l 0,-315.828726 c 0,-17.496912 -13.4978,-31.582873 -30.26413,-31.582873 l -30.26412,0 0,-15.791436 c 0,-26.245367 -20.2467,-47.3743084 -45.39619,-47.3743084 -25.14949,0 -45.39619,21.1289414 -45.39619,47.3743084 l 0,15.791436 -121.0565,0 0,-15.791436 c 0,-26.245367 -20.2467,-47.3743084 -45.39619,-47.3743084 z m 0,31.5828724 c 8.38316,0 15.13206,7.04298 15.13206,15.791436 l 0,47.374309 c 0,8.748456 -6.7489,15.791436 -15.13206,15.791436 -8.38316,0 -15.13206,-7.04298 -15.13206,-15.791436 l 0,-47.374309 c 0,-8.748456 6.7489,-15.791436 15.13206,-15.791436 z m 211.84888,0 c 8.38316,0 15.13206,7.04298 15.13206,15.791436 l 0,47.374309 c 0,8.748456 -6.7489,15.791436 -15.13206,15.791436 -8.38317,0 -15.13207,-7.04298 -15.13207,-15.791436 l 0,-47.374309 c 0,-8.748456 6.7489,-15.791436 15.13207,-15.791436 z M 50.705165,162.04857 l 363.169505,0 0,252.66298 -363.169505,0 0,-252.66298 z" />
+          </svg>
+        </div>
+        <h3 class="quick-card-title">CONFIRMAR PRESENÇA</h3>
+        <p class="quick-card-desc">Sua presença tornará nosso dia inesquecível. Por gentileza, confirme sua presença com antecedência para celebrarmos juntos.</p>
+        <a href="rsvp.html" class="quick-card-btn">CONFIRMAR</a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       RODAPÉ (FOOTER)
+       ====================================================================== -->
+  <footer class="site-footer-bottom" id="footer">
+    <!-- Versículo -->
+    <div class="footer-quote">
+      <div class="footer-quote-line"></div>
+      <p class="footer-verse">"Para que todos vejam, e saibam, e considerem,<br>e juntamente entendam que a mão do
+        Senhor fez isso."</p>
+      <div class="footer-verse-ref">
+        <span class="footer-ref-line"></span>
+        <span class="footer-ref-text">Isaías 41:20</span>
+        <span class="footer-ref-line"></span>
+      </div>
+      <div class="footer-quote-line"></div>
+    </div>
+
+    <!-- Monograma / Brasão -->
+    <div class="footer-monogram">
+      <a href="brasao.html" aria-label="Ver o Brasão da Família Almeida">
+        <img src="images/brasao/ChatGPT Image 12 de ago. de 2026, 20_08_35.png" alt="Brasão Daniel & Franciellen"
+          class="footer-brasao-img">
+      </a>
+    </div>
+
+    <p class="footer-copy">© 2026 Daniel & Franciellen Maria · Todos os direitos reservados</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/main.js"></script>
 </body>
+
 </html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin | Daniel &amp; Franciellen</title>
+  <meta name="robots" content="noindex, nofollow">
+
+  <link rel="icon" type="image/png" href="images/brasao/Gemini_Generated_Image_cqwzlmcqwzlmcqwz 1.png">
+  <link rel="stylesheet" href="css/style.css?v=3.3">
+  <link rel="stylesheet" href="css/admin.css?v=1.0">
+</head>
+<body class="admin-body">
+
+  <!-- ===== TELA DE LOGIN ===== -->
+  <div class="admin-login" id="admin-login">
+    <div class="admin-login-card">
+      <div class="admin-login-crest">
+        <img src="images/brasao/Gemini_Generated_Image_cqwzlmcqwzlmcqwz 1.png" alt="Brasão" class="admin-login-crest-img">
+      </div>
+      <h1 class="admin-login-title">Painel Admin</h1>
+      <p class="admin-login-sub">Lista de Presentes · Daniel &amp; Franciellen</p>
+      <form class="admin-login-form" id="login-form">
+        <div class="admin-field">
+          <label for="admin-password" class="admin-label">Senha de Acesso</label>
+          <input type="password" id="admin-password" class="admin-input" placeholder="Digite a senha" autocomplete="off" required>
+        </div>
+        <p class="admin-login-error" id="login-error" hidden>Senha incorreta. Tente novamente.</p>
+        <button type="submit" class="admin-btn admin-btn-primary">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== PAINEL PRINCIPAL ===== -->
+  <div class="admin-panel" id="admin-panel" hidden>
+
+    <!-- Header do Admin -->
+    <header class="admin-header">
+      <div class="admin-header-inner">
+        <div class="admin-header-left">
+          <img src="images/brasao/Gemini_Generated_Image_cqwzlmcqwzlmcqwz 1.png" alt="Brasão" class="admin-header-crest">
+          <div>
+            <h1 class="admin-header-title">Painel Administrativo</h1>
+            <p class="admin-header-sub">Gerenciar Presentes &amp; Confirmações · Daniel &amp; Franciellen</p>
+          </div>
+        </div>
+        <div class="admin-header-right">
+          <a href="presentes.html" target="_blank" class="admin-btn admin-btn-outline admin-btn-sm">
+            <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
+              <path d="M6 3H3v10h10v-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M7 9L14 2M14 2H10M14 2v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Ver Site
+          </a>
+          <button class="admin-btn admin-btn-ghost admin-btn-sm" id="btn-logout">Sair</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-main">
+
+      <!-- ── CONFIRMAÇÕES RSVP ── -->
+      <section class="admin-section" id="rsvp-section">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">Confirmações de Presença</h2>
+          <div class="admin-section-actions">
+            <span class="admin-rsvp-counter" id="rsvp-counter">0 confirmados</span>
+            <button class="admin-btn admin-btn-outline admin-btn-sm" id="btn-export-rsvp">
+              <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
+                <path d="M8 2v8M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3 12h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+              Exportar CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-rsvp-list" id="rsvp-list">
+          <!-- Preenchido pelo admin.js -->
+        </div>
+      </section>
+
+      <!-- ── PRESENTES COMPRADOS ── -->
+      <section class="admin-section" id="comprados-section">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">Presentes Comprados</h2>
+          <div class="admin-section-actions">
+            <span class="admin-comprados-counter" id="comprados-counter">0 comprados</span>
+          </div>
+        </div>
+
+        <div class="admin-comprados-list" id="comprados-list">
+          <!-- Preenchido pelo admin.js -->
+        </div>
+      </section>
+
+      <!-- ── CATEGORIAS ── -->
+      <section class="admin-section">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">Categorias</h2>
+          <button class="admin-btn admin-btn-outline admin-btn-sm" id="btn-add-category">
+            <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
+              <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Nova Categoria
+          </button>
+        </div>
+
+        <!-- Formulário de nova categoria (oculto) -->
+        <div class="admin-form-inline" id="form-category" hidden>
+          <div class="admin-field">
+            <label for="cat-name" class="admin-label">Nome</label>
+            <input type="text" id="cat-name" class="admin-input" placeholder="Ex: Decoração">
+          </div>
+          <div class="admin-field admin-field-sm">
+            <label for="cat-icon" class="admin-label">Ícone (emoji)</label>
+            <input type="text" id="cat-icon" class="admin-input" placeholder="Ex: 🎨" maxlength="4">
+          </div>
+          <div class="admin-form-actions">
+            <button class="admin-btn admin-btn-primary admin-btn-sm" id="btn-save-category">Salvar</button>
+            <button class="admin-btn admin-btn-ghost admin-btn-sm" id="btn-cancel-category">Cancelar</button>
+          </div>
+        </div>
+
+        <!-- Lista de categorias -->
+        <div class="admin-categories-list" id="categories-list"></div>
+      </section>
+
+      <!-- ── PRESENTES ── -->
+      <section class="admin-section">
+        <div class="admin-section-header">
+          <h2 class="admin-section-title">Presentes</h2>
+          <div class="admin-section-actions">
+            <select class="admin-select" id="filter-category">
+              <option value="todos">Todas as categorias</option>
+            </select>
+            <button class="admin-btn admin-btn-primary admin-btn-sm" id="btn-add-item">
+              <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
+                <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              Novo Presente
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulário de novo presente (oculto) -->
+        <div class="admin-form-card" id="form-item" hidden>
+          <h3 class="admin-form-title" id="form-item-title">Adicionar Presente</h3>
+          <input type="hidden" id="item-edit-id" value="">
+          <div class="admin-form-grid">
+            <div class="admin-field admin-field-full">
+              <label for="item-name" class="admin-label">Nome do Produto *</label>
+              <input type="text" id="item-name" class="admin-input" placeholder="Ex: Geladeira Brastemp 385L" required>
+            </div>
+            <div class="admin-field">
+              <label for="item-link" class="admin-label">Link do Produto (Mercado Livre, Magalu, Amazon, etc.) *</label>
+              <input type="url" id="item-link" class="admin-input" placeholder="https://..." required>
+            </div>
+            <div class="admin-field">
+              <label for="item-category" class="admin-label">Categoria *</label>
+              <select id="item-category" class="admin-select" required>
+                <!-- Preenchido pelo JS -->
+              </select>
+            </div>
+            <div class="admin-field admin-field-full">
+              <label for="item-image" class="admin-label">URL da Imagem (opcional)</label>
+              <input type="url" id="item-image" class="admin-input" placeholder="https://...imagem.jpg">
+            </div>
+          </div>
+          <div class="admin-form-actions">
+            <button class="admin-btn admin-btn-primary" id="btn-save-item">Salvar Presente</button>
+            <button class="admin-btn admin-btn-ghost" id="btn-cancel-item">Cancelar</button>
+          </div>
+        </div>
+
+        <!-- Tabela/lista de presentes -->
+        <div class="admin-items-list" id="items-list"></div>
+
+        <!-- Contadores -->
+        <div class="admin-stats" id="admin-stats"></div>
+      </section>
+
+      <!-- ── AÇÕES ── -->
+      <section class="admin-section admin-section-actions-bar">
+        <div class="admin-danger-zone">
+          <h3 class="admin-danger-title">Zona de Risco</h3>
+          <p class="admin-danger-desc">Restaurar a lista de presentes para os dados padrão. Isso apagará todas as alterações feitas pelo admin.</p>
+          <button class="admin-btn admin-btn-danger admin-btn-sm" id="btn-reset-data">Restaurar Dados Padrão</button>
+          <button class="admin-btn admin-btn-danger admin-btn-sm" id="btn-clear-rsvp" style="margin-top:0.5rem">Limpar Confirmações de Presença</button>
+          <button class="admin-btn admin-btn-danger admin-btn-sm" id="btn-clear-comprados" style="margin-top:0.5rem">Limpar Presentes Comprados</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="js/presentes-data.js"></script>
+  <script src="js/convidados-data.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

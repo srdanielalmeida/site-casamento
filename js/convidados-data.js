@@ -1,0 +1,42 @@
+/* ============================================================
+   Lista Oficial de Convidados — Daniel & Franciellen Maria
+   ============================================================ */
+
+const CONVIDADOS_LISTA = [
+  "Ana Delice & Cláudio",
+  "Aniny",
+  "Antônio, Iolete & Aniny",
+  "Bia, Breno & Maria",
+  "Edson & Cris",
+  "Elizeu & Família",
+  "Fernando, Andreza & Arthur",
+  "Flávio",
+  "Fleidemar, Clarice, Sarah & Benjamin",
+  "Joselma & Gabriel",
+  "Julianny & Felipe",
+  "Junior & Francineide",
+  "Lauro & Janete",
+  "Leandro & Jane Meire",
+  "Luan & Cristina",
+  "Luan, Cristina & Lizzie",
+  "Lukas & Michele",
+  "Maciel, Raquel & Oscar",
+  "Maciel, Raquel, Oscar & Otávio",
+  "Madalena",
+  "Maeli & Maria Santiago",
+  "Mateus, Débora & Arthur",
+  "Michely",
+  "Neto, Beth, Chris & Rayane",
+  "Paulo, Cris & Kalel",
+  "Pe. Zeno",
+  "Raiane, Nilo & Kauã",
+  "Railson, Neyde & Família",
+  "Rany Belizário",
+  "Richardson, Andressa & Amélia",
+  "Robson",
+  "Rubens, Rosângela & Isaías",
+  "Samily",
+  "Torres & Lucidalva",
+  "Valdinar & Ivonete",
+  "Vitória, Otávio & Miguel"
+];
