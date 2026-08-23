@@ -66,13 +66,33 @@
       .trim();
   }
 
-  // Busca sugestões que combinam com o que foi digitado
+  // Obtém lista de nomes de convidados que já confirmaram presença
+  function obterConfirmados() {
+    try {
+      const saved = localStorage.getItem(LS_ALL_CONFIRMS);
+      if (saved) {
+        const lista = JSON.parse(saved);
+        if (Array.isArray(lista)) {
+          return lista.map(item => normalizar(item.nome));
+        }
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  // Busca sugestões que combinam com o que foi digitado (excluindo os já confirmados)
   function buscarSugestoes(termo) {
     const normTermo = normalizar(termo);
     if (!normTermo || normTermo.length < 2) return [];
 
+    const confirmados = obterConfirmados();
+
     return listaOficial.filter(nome => {
       const normNome = normalizar(nome);
+
+      // Se este convidado/família já confirmou presença, NÃO exibe mais nas sugestões
+      if (confirmados.includes(normNome)) return false;
+
       if (normNome.includes(normTermo)) return true;
 
       // Busca por partes de nomes individuais na família
@@ -297,9 +317,35 @@
     const convidadoOficial = validarNomeConvidado(digitado);
 
     if (!convidadoOficial) {
+      // Verifica se o nome digitado pertence a alguém que já confirmou
+      const confirmados = obterConfirmados();
+      const matchJaConfirmado = listaOficial.find(c => {
+        if (normalizar(c) === normalizar(digitado)) return true;
+        const partes = normalizar(c).split(/[,&]+/).map(p => p.trim());
+        return partes.includes(normalizar(digitado));
+      });
+
+      if (matchJaConfirmado && confirmados.includes(normalizar(matchJaConfirmado))) {
+        showError('rsvp-nome', 'error-nome', `A presença de "${matchJaConfirmado}" já foi confirmada anteriormente.`);
+        return false;
+      }
+
       showError('rsvp-nome', 'error-nome', 'Nome não localizado na lista oficial de convidados. Por favor, verifique a grafia conforme consta em seu convite.');
       valid = false;
     } else {
+      // Verifica se este convidado oficial já confirmou (e não é a alteração da sessão atual)
+      const confirmados = obterConfirmados();
+      if (confirmados.includes(normalizar(convidadoOficial))) {
+        const minhaConfirmacao = localStorage.getItem(LS_MY_CONFIRM);
+        let meuNome = '';
+        try { meuNome = JSON.parse(minhaConfirmacao || '{}').nome || ''; } catch (_) {}
+
+        if (normalizar(meuNome) !== normalizar(convidadoOficial)) {
+          showError('rsvp-nome', 'error-nome', `A presença de "${convidadoOficial}" já foi confirmada anteriormente.`);
+          return false;
+        }
+      }
+
       // Ajusta o input para o nome oficial padronizado
       inputNome.value = convidadoOficial;
       clearError('rsvp-nome', 'error-nome');
