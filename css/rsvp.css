@@ -43,9 +43,9 @@
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(5, 13, 26, 0.5) 0%,
-    rgba(5, 13, 26, 0.25) 35%,
-    rgba(5, 13, 26, 0.65) 75%,
+    rgba(5, 13, 26, 0.7) 0%,
+    rgba(5, 13, 26, 0.4) 35%,
+    rgba(5, 13, 26, 0.8) 75%,
     rgba(5, 13, 26, 1) 100%
   );
 }
@@ -87,6 +87,7 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1.1;
+  filter: drop-shadow(0 2px 14px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 25px rgba(0, 0, 0, 0.7));
 }
 
 .rsvp-hero-divider {
@@ -1029,5 +1030,14 @@
 
   .rsvp-hero-img {
     object-position: 18% center;
+  }
+  .rsvp-hero-overlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(5, 13, 26, 0.8) 0%,
+      rgba(5, 13, 26, 0.55) 35%,
+      rgba(5, 13, 26, 0.88) 75%,
+      rgba(5, 13, 26, 1) 100%
+    ) !important;
   }
 }
