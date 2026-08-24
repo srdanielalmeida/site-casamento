@@ -138,6 +138,12 @@
     if (sacolaEmpty) sacolaEmpty.hidden = true;
 
     const allItems = data.items;
+    const noticeHtml = `
+      <div class="sacola-notice-banner">
+        <span>💡 <strong>Importante:</strong> Após comprar na loja, clique no botão <strong>"Já Comprei!"</strong> abaixo para <strong>remover o item da lista</strong> e evitar presentes repetidos.</span>
+      </div>
+    `;
+
     const html = ids.map(id => {
       const item = allItems.find(i => i.id === id);
       if (!item) return '';
@@ -188,7 +194,7 @@
             <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="sacola-item-store">${storeLabel} →</a>
           </div>
           <div class="sacola-item-actions">
-            <button class="sacola-btn-comprei" data-comprar-id="${id}" title="Marcar como comprado">
+            <button class="sacola-btn-comprei" data-comprar-id="${id}" title="Marcar como comprado e remover da lista">
               <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               Já Comprei!
             </button>
@@ -200,7 +206,7 @@
       `;
     }).join('');
 
-    sacolaBody.innerHTML = html;
+    sacolaBody.innerHTML = noticeHtml + html;
 
     // Event listeners — Remover da sacola
     sacolaBody.querySelectorAll('[data-remove-sacola]').forEach(btn => {
@@ -239,16 +245,19 @@
           <h3 class="compra-modal-title">Confirmar Compra</h3>
         </div>
         <p class="compra-modal-item-name">${item.name}</p>
+        <p class="compra-modal-desc">
+          Ao confirmar, este item será <strong>removido da lista pública</strong> para evitar que outro convidado compre o mesmo presente.
+        </p>
         <div class="compra-modal-field">
-          <label for="compra-nome" class="compra-modal-label">Seu nome (opcional)</label>
-          <input type="text" id="compra-nome" class="compra-modal-input" placeholder="Ex: João e Maria" autocomplete="off">
+          <label for="compra-nome" class="compra-modal-label">Seu nome ou família (opcional)</label>
+          <input type="text" id="compra-nome" class="compra-modal-input" placeholder="Ex: Família Silva / Tio João" autocomplete="off">
         </div>
         <div class="compra-modal-actions">
           <button class="compra-modal-btn-confirm" id="btn-confirmar-compra">
             <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Confirmar
+            Confirmar e Remover da Lista
           </button>
-          <button class="compra-modal-btn-cancel" id="btn-cancelar-compra">Cancelar</button>
+          <button class="compra-modal-btn-cancel" id="btn-cancelar-compra">Voltar</button>
         </div>
       </div>
     `;
@@ -291,7 +300,7 @@
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
         <path d="M20 6L9 17l-5-5" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span>Presente marcado como comprado!</span>
+      <span>Presente confirmado e removido da lista pública!</span>
     `;
     document.body.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add('show'));
@@ -318,7 +327,7 @@
     const sacola = getSacolaIds();
     const separado = sacola.includes(item.id);
 
-    // Se comprado, esconder para outros (simular via localStorage)
+    // Se comprado, esconder para todos
     if (comprado) return '';
 
     const imageHTML = hasImage
@@ -329,8 +338,8 @@
 
     const separadoClass = separado ? 'pr-separado' : '';
     const separadoIcon = separado
-      ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="#C9A84C" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
-      : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" stroke="currentColor" stroke-width="1.5"/></svg>`;
+      ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="#D4AF37" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
+      : `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" stroke="currentColor" stroke-width="1.6"/></svg>`;
 
     const couponHtml = (item.coupon && item.coupon.trim() !== '')
       ? `
@@ -344,24 +353,53 @@
       `
       : '';
 
+    // Ações contextuais do card
+    const cardActionsHtml = separado
+      ? `
+        <div class="pr-item-card-actions pr-item-card-actions-separado">
+          <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="pr-item-btn pr-item-btn-store" title="${storeLabel}">
+            ${storeLabel}
+            <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </a>
+          <button type="button" class="pr-item-btn-comprei" data-comprar-card-id="${item.id}" title="Marcar como comprado e remover da lista">
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            ✓ Já Comprei!
+          </button>
+        </div>
+        <p class="pr-card-status-hint pr-card-status-hint-separado">
+          🛍️ Na sua sacola · Ao finalizar a compra, clique em <strong>"Já Comprei!"</strong> para remover da lista.
+        </p>
+      `
+      : `
+        <div class="pr-item-card-actions">
+          <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="pr-item-btn" title="${storeLabel}">
+            ${storeLabel}
+            <svg viewBox="0 0 16 16" fill="none" width="13" height="13">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </a>
+        </div>
+        <p class="pr-card-status-hint">
+          🤍 Clique no coração acima para separar este presente
+        </p>
+      `;
+
     return `
-      <article class="pr-item-card ${separadoClass}" style="animation-delay: ${index * 0.08}s">
+      <article class="pr-item-card ${separadoClass}" style="animation-delay: ${index * 0.06}s">
         <div class="pr-item-img-wrap">
           ${imageHTML}
           <button class="pr-btn-separar ${separado ? 'active' : ''}" data-separar-id="${item.id}" title="${separado ? 'Remover da sacola' : 'Separar este presente'}">
             ${separadoIcon}
+            <span class="pr-btn-separar-label">${separado ? 'Separado' : 'Separar'}</span>
           </button>
-          ${separado ? '<span class="pr-badge-separado">Separado</span>' : ''}
+          ${separado ? '<span class="pr-badge-separado">✓ Na sua Sacola</span>' : ''}
         </div>
         <div class="pr-item-body">
           <h3 class="pr-item-name">${item.name}</h3>
           ${couponHtml}
-          <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="pr-item-btn" title="${storeLabel}">
-            ${storeLabel}
-            <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
-              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-          </a>
+          ${cardActionsHtml}
         </div>
       </article>
     `;
@@ -370,6 +408,24 @@
   // Renderizar conteúdo (todas as categorias ou filtrado)
   function renderContent(categoryFilter) {
     if (!contentEl) return;
+
+    // Verificar se todos os itens de toda a lista foram comprados (Meta: Zerar a lista!)
+    const totalDisponiveisGlobal = data.items.filter(item => !isItemComprado(item.id)).length;
+    if (totalDisponiveisGlobal === 0 && data.items.length > 0) {
+      contentEl.innerHTML = `
+        <div class="pr-all-bought-box reveal">
+          <div class="pr-all-bought-icon">🎉 🤍 🏡</div>
+          <h2 class="pr-all-bought-title">Lista Zerada com Amor!</h2>
+          <p class="pr-all-bought-text">
+            Glória a Deus! Todos os presentes de nossa lista foram presenteados com imenso carinho por nossos familiares e amigos.
+          </p>
+          <p class="pr-all-bought-sub">
+            A presença, o afeto e as orações de cada um de vocês são o alicerce mais precioso da nossa nova família. Nosso mais sincero agradecimento de coração!
+          </p>
+        </div>
+      `;
+      return;
+    }
 
     let html = '';
 
@@ -385,7 +441,7 @@
             <div class="pr-category-header">
               <span class="pr-category-icon" aria-hidden="true">${iconSvg}</span>
               <h2 class="pr-category-title">${cat.name}</h2>
-              <span class="pr-category-count">${items.length} ${items.length === 1 ? 'item' : 'itens'}</span>
+              <span class="pr-category-count">${items.length} ${items.length === 1 ? 'disponível' : 'disponíveis'}</span>
             </div>
             <div class="pr-items-grid">
               ${items.map((item, i) => renderItemCard(item, i)).join('')}
@@ -405,7 +461,7 @@
             <div class="pr-category-header">
               <span class="pr-category-icon" aria-hidden="true">${iconSvg}</span>
               <h2 class="pr-category-title">${cat.name}</h2>
-              <span class="pr-category-count">${items.length} ${items.length === 1 ? 'item' : 'itens'}</span>
+              <span class="pr-category-count">${items.length} ${items.length === 1 ? 'disponível' : 'disponíveis'}</span>
             </div>
             <div class="pr-items-grid">
               ${items.map((item, i) => renderItemCard(item, i)).join('')}
@@ -415,7 +471,7 @@
       } else {
         html = `
           <div class="pr-empty-category">
-            <p>Nenhum item nesta categoria ainda.</p>
+            <p>✨ Todos os presentes desta categoria já foram escolhidos e comprados com carinho!</p>
           </div>
         `;
       }
@@ -430,6 +486,16 @@
         e.stopPropagation();
         const id = parseInt(btn.dataset.separarId);
         toggleSeparar(id);
+      });
+    });
+
+    // Event listeners para botões Já Comprei direto no card
+    contentEl.querySelectorAll('[data-comprar-card-id]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = parseInt(btn.dataset.comprarCardId);
+        abrirModalCompra(id);
       });
     });
 
