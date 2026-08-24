@@ -112,7 +112,7 @@
   }
 
   function atualizarBadgeSacola() {
-    const ids = getSacolaIds();
+    const ids = getSacolaIds().filter(id => !isItemComprado(id));
     const count = ids.length;
     if (sacolaCount) {
       sacolaCount.textContent = count;
@@ -271,6 +271,8 @@
     overlay.querySelector('#btn-confirmar-compra').addEventListener('click', () => {
       const nome = nomeInput.value.trim();
       marcarComoComprado(itemId, nome);
+      let ids = getSacolaIds().filter(i => i !== itemId);
+      saveSacolaIds(ids);
       overlay.classList.remove('open');
       setTimeout(() => overlay.remove(), 350);
       renderContent(activeCategory);
@@ -365,7 +367,7 @@
           </a>
           <button type="button" class="pr-item-btn-comprei" data-comprar-card-id="${item.id}" title="Marcar como comprado e remover da lista">
             <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            ✓ Já Comprei!
+            Já Comprei!
           </button>
         </div>
         <p class="pr-card-status-hint pr-card-status-hint-separado">

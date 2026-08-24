@@ -1705,6 +1705,31 @@
       rgba(5,13,26,1)   100%
     ) !important;
   }
+  .pr-guide-box {
+    padding: 1.1rem 0.9rem;
+    margin: 1rem 0 0.5rem;
+  }
+  .pr-guide-tag {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.7rem;
+    letter-spacing: 2px;
+  }
+  .pr-guide-step {
+    padding: 0.85rem 0.75rem;
+    gap: 0.65rem;
+  }
+  .pr-guide-step-num {
+    width: 26px;
+    height: 26px;
+    font-size: 0.75rem;
+  }
+  .pr-guide-step-info strong {
+    font-size: 0.88rem;
+  }
+  .pr-guide-step-info span {
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
   .sacola-btn-comprei { font-size: 0.52rem; padding: 0.4rem 0.7rem; }
 }
 
