@@ -230,9 +230,13 @@
   }
 
   // ── Modal de confirmação de compra ──
+  let _modalAbertaEm = 0; // timestamp de quando o modal foi aberto
+
   function abrirModalCompra(itemId) {
     const item = data.items.find(i => i.id === itemId);
     if (!item) return;
+
+    _modalAbertaEm = Date.now();
 
     const overlay = document.createElement('div');
     overlay.className = 'compra-modal-overlay';
@@ -252,6 +256,10 @@
           <label for="compra-nome" class="compra-modal-label">Seu nome ou família (opcional)</label>
           <input type="text" id="compra-nome" class="compra-modal-input" placeholder="Ex: Família Silva / Tio João" autocomplete="off">
         </div>
+        <!-- Honeypot anti-bot: nunca deve ser preenchido por humanos -->
+        <div style="display:none; visibility:hidden; position:absolute; left:-9999px;" aria-hidden="true">
+          <input type="text" id="compra-hp" name="hp" tabindex="-1" autocomplete="new-password">
+        </div>
         <div class="compra-modal-actions">
           <button class="compra-modal-btn-confirm" id="btn-confirmar-compra">
             <svg viewBox="0 0 16 16" width="14" height="14" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -266,11 +274,26 @@
     requestAnimationFrame(() => overlay.classList.add('open'));
 
     const nomeInput = overlay.querySelector('#compra-nome');
+    const honeypotInput = overlay.querySelector('#compra-hp');
     nomeInput.focus();
 
-    overlay.querySelector('#btn-confirmar-compra').addEventListener('click', () => {
+    overlay.querySelector('#btn-confirmar-compra').addEventListener('click', async (e) => {
       const nome = nomeInput.value.trim();
-      marcarComoComprado(itemId, nome);
+      const tempoModalMs = Date.now() - _modalAbertaEm;
+      const isTrusted = e.isTrusted === true;
+      const honeypotPreenchido = (honeypotInput && honeypotInput.value.trim() !== '');
+
+      // Coleta auditoria assincronamente (não bloqueia a UI)
+      let auditInfo = null;
+      if (typeof coletarAuditoria === 'function') {
+        try {
+          auditInfo = await coletarAuditoria({ isTrusted, tempoModalMs, honeypotPreenchido });
+        } catch (err) {
+          console.warn('[Audit] Falha ao coletar auditoria:', err);
+        }
+      }
+
+      marcarComoComprado(itemId, nome, auditInfo);
       let ids = getSacolaIds().filter(i => i !== itemId);
       saveSacolaIds(ids);
       overlay.classList.remove('open');
@@ -293,6 +316,7 @@
       }
     });
   }
+
 
   // ── Toast de confirmação ──
   function mostrarToastCompra(itemName) {
@@ -544,6 +568,19 @@
         renderContent(activeCategory);
         atualizarBadgeSacola();
       }
+    });
+  }
+
+  // Realtime — atualiza a lista imediatamente quando outro convidado comprar
+  if (typeof iniciarRealtimePresentes === 'function') {
+    iniciarRealtimePresentes((updatedRow) => {
+      // Atualiza o item local na memória
+      const idx = data.items.findIndex(it => it.id === updatedRow.id);
+      if (idx !== -1) {
+        data.items[idx] = { ...data.items[idx], ...updatedRow };
+      }
+      renderContent(activeCategory);
+      atualizarBadgeSacola();
     });
   }
 

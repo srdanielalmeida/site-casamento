@@ -94,7 +94,8 @@
             .map(it => ({
               id: it.id,
               timestamp: it.purchased_at || new Date().toISOString(),
-              nomeConvidado: it.purchased_by || ''
+              nomeConvidado: it.purchased_by || '',
+              audit_info: it.audit_info || null
             }));
           if (compradosDaNuvem.length > 0) {
             saveCompradosList(compradosDaNuvem);
@@ -226,16 +227,20 @@
           ${sorted.map((c, i) => {
             const item = allItems.find(it => it.id === c.id);
             const itemName = item ? item.name : `ID ${c.id} (removido)`;
+            const temAudit = c.audit_info && typeof c.audit_info === 'object';
             return `
               <tr>
                 <td class="admin-rsvp-num">${sorted.length - i}</td>
                 <td class="admin-rsvp-nome">${escapeHtml(itemName)}</td>
                 <td class="admin-rsvp-msg">${c.nomeConvidado ? escapeHtml(c.nomeConvidado) : '<span class="admin-rsvp-empty-msg">—</span>'}</td>
                 <td class="admin-rsvp-data">${formatarData(c.timestamp)}</td>
-                <td>
+                <td style="display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap;">
                   <button class="admin-btn admin-btn-outline admin-btn-sm" data-restaurar-id="${c.id}" title="Restaurar para a lista">
                     <svg viewBox="0 0 16 16" fill="none" width="12" height="12"><path d="M2 8a6 6 0 0 1 11.5-2.5M14 8a6 6 0 0 1-11.5 2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M14 2v4h-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 14v-4h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     Restaurar
+                  </button>
+                  <button class="admin-btn admin-btn-outline admin-btn-sm audit-btn" data-audit-id="${c.id}" title="Ver detalhes de quem comprou">
+                    🔍 Detalhes
                   </button>
                 </td>
               </tr>
@@ -256,7 +261,127 @@
         }
       });
     });
+
+    // Event listeners — Ver detalhes de auditoria
+    container.querySelectorAll('[data-audit-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = parseInt(btn.dataset.auditId);
+        const comprado = sorted.find(c => c.id === id);
+        const item = allItems.find(it => it.id === id);
+        if (comprado) abrirModalAuditoria(comprado, item);
+      });
+    });
   }
+
+  // ── Modal de Auditoria do Comprador ──
+  function abrirModalAuditoria(comprado, item) {
+    const a = comprado.audit_info && typeof comprado.audit_info === 'object'
+      ? comprado.audit_info
+      : null;
+    const nulo = '<span class="audit-vazio">—</span>';
+    const sim  = '<span class="audit-ok">✓ Sim</span>';
+    const nao  = '<span class="audit-nao">✗ Não</span>';
+
+    // Formata valor ou exibe — se nulo/vazio
+    const v = (val) => {
+      if (val === null || val === undefined || val === '') return nulo;
+      return escapeHtml(String(val));
+    };
+
+    // Dados de ação humana
+    let acaoHtml = nulo;
+    if (a && a.acao_humana && typeof a.acao_humana === 'object') {
+      const ah = a.acao_humana;
+      const passou = ah.passou === true ? sim : nao;
+      const trusted = ah.is_trusted === true ? sim : nao;
+      const tempo = (ah.tempo_modal_ms != null) ? `${ah.tempo_modal_ms} ms` : null;
+      const honeypot = ah.honeypot_ok === true ? sim : nao;
+      acaoHtml = `
+        <div class="audit-grid">
+          <div class="audit-field"><span class="audit-label">Resultado geral</span>${passou}</div>
+          <div class="audit-field"><span class="audit-label">Clique real (isTrusted)</span>${trusted}</div>
+          <div class="audit-field"><span class="audit-label">Tempo no modal</span>${v(tempo)}</div>
+          <div class="audit-field"><span class="audit-label">Honeypot (sem bot)</span>${honeypot}</div>
+        </div>`;
+    }
+
+    // Dados de RSVP vinculado
+    let rsvpHtml = nulo;
+    if (a && a.vinculo_rsvp) {
+      rsvpHtml = `<span class="audit-ok">${escapeHtml(a.vinculo_rsvp)}</span>`;
+    } else if (a) {
+      rsvpHtml = '<span class="audit-vazio">Não confirmou presença neste dispositivo</span>';
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'audit-modal-overlay';
+    overlay.innerHTML = `
+      <div class="audit-modal">
+        <div class="audit-modal-header">
+          <h3 class="audit-modal-title">🔍 Auditoria da Compra</h3>
+          <button class="audit-modal-close" id="audit-close" title="Fechar">×</button>
+        </div>
+        <p class="audit-item-name">${v(item ? item.name : comprado.id)}</p>
+
+        <section class="audit-section">
+          <h4 class="audit-section-title">👤 Identificação</h4>
+          <div class="audit-grid">
+            <div class="audit-field"><span class="audit-label">Nome informado</span>${comprado.nomeConvidado ? escapeHtml(comprado.nomeConvidado) : '<span class="audit-vazio">Anônimo</span>'}</div>
+            <div class="audit-field"><span class="audit-label">Convidado via RSVP</span>${rsvpHtml}</div>
+            <div class="audit-field"><span class="audit-label">Data / Hora</span>${formatarData(comprado.timestamp)}</div>
+          </div>
+        </section>
+
+        <section class="audit-section">
+          <h4 class="audit-section-title">📱 Dispositivo</h4>
+          <div class="audit-grid">
+            <div class="audit-field"><span class="audit-label">Tipo de dispositivo</span>${a ? v(a.dispositivo) : nulo}</div>
+            <div class="audit-field"><span class="audit-label">Sistema Operacional</span>${a ? v(a.os) : nulo}</div>
+            <div class="audit-field"><span class="audit-label">Navegador</span>${a ? v(a.browser) : nulo}</div>
+            <div class="audit-field"><span class="audit-label">Resolução da tela</span>${a ? v(a.resolucao) : nulo}</div>
+            <div class="audit-field"><span class="audit-label">Fuso horário</span>${a ? v(a.timezone) : nulo}</div>
+            <div class="audit-field"><span class="audit-label">Idioma</span>${a ? v(a.idioma) : nulo}</div>
+            <div class="audit-field"><span class="audit-label">Online no momento</span>${a ? (a.online === true ? sim : a.online === false ? nao : nulo) : nulo}</div>
+          </div>
+          ${a && a.ua ? `<div class="audit-ua"><span class="audit-label">User Agent</span><code>${escapeHtml(a.ua)}</code></div>` : ''}
+        </section>
+
+        <section class="audit-section">
+          <h4 class="audit-section-title">🌐 Rede / Localização</h4>
+          <p class="audit-note">Dados obtidos via IP público (ip-api.com). Podem estar em branco se o serviço estava indisponível.</p>
+          <div class="audit-grid">
+            <div class="audit-field"><span class="audit-label">Endereço IP</span>${a ? v(a.ip) : nulo}</div>
+            <div class="audit-field"><span class="audit-label">Cidade</span>${a ? v(a.cidade) : nulo}</div>
+            <div class="audit-field"><span class="audit-label">Estado / Região</span>${a ? v(a.regiao) : nulo}</div>
+            <div class="audit-field"><span class="audit-label">Provedor (ISP)</span>${a ? v(a.isp) : nulo}</div>
+          </div>
+        </section>
+
+        <section class="audit-section">
+          <h4 class="audit-section-title">🤖 Verificação Anti-Bot</h4>
+          ${acaoHtml}
+        </section>
+
+        ${!a ? '<p class="audit-no-data">⚠️ Dados de auditoria não disponíveis para esta compra. Compras anteriores à atualização do sistema não possuem auditoria.</p>' : ''}
+
+        <div class="audit-modal-footer">
+          <button class="admin-btn admin-btn-ghost admin-btn-sm" id="audit-close-btn">Fechar</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('open'));
+
+    const fechar = () => {
+      overlay.classList.remove('open');
+      setTimeout(() => overlay.remove(), 300);
+    };
+    overlay.querySelector('#audit-close').addEventListener('click', fechar);
+    overlay.querySelector('#audit-close-btn').addEventListener('click', fechar);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) fechar(); });
+  }
+
 
   // ── Categorias ──
   function renderCategories() {

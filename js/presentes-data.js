@@ -162,7 +162,8 @@ function savePresentesData(data) {
 
 /**
  * Busca dados em nuvem do Supabase de forma assíncrona.
- * Se configurado, atualiza o cache local e retorna os dados mais recentes.
+ * Além dos dados dos itens, sincroniza o status de comprado (is_purchased)
+ * para o localStorage local — assim todos os visitantes veem a lista correta.
  */
 async function fetchPresentesDataFromSupabase() {
   const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
@@ -171,7 +172,7 @@ async function fetchPresentesDataFromSupabase() {
   try {
     const [catsRes, itemsRes] = await Promise.all([
       sb.from('presentes_categorias').select('*').order('ordem', { ascending: true }),
-      sb.from('presentes_itens').select('*').order('id', { ascending: true })
+      sb.from('presentes_itens').select('id,name,image,link,category,coupon,is_purchased,purchased_by,purchased_at,audit_info').order('id', { ascending: true })
     ]);
 
     if (catsRes.error) throw catsRes.error;
@@ -182,6 +183,31 @@ async function fetchPresentesDataFromSupabase() {
 
     const data = { categories, items };
     savePresentesData(data);
+
+    // ── Sincroniza itens comprados na nuvem para o cache local ──────────────
+    // Isso garante que TODOS os dispositivos vejam os itens já comprados,
+    // mesmo que não tenham sido eles que clicaram em "Já Comprei!".
+    if (itemsRes.data && itemsRes.data.length > 0) {
+      const compradosDaNuvem = itemsRes.data
+        .filter(it => it.is_purchased === true)
+        .map(it => ({
+          id: it.id,
+          timestamp: it.purchased_at || new Date().toISOString(),
+          nomeConvidado: it.purchased_by || '',
+          audit_info: it.audit_info || null
+        }));
+
+      // Mescla com lista local: itens da nuvem têm precedência
+      const listaLocal = getCompradosList();
+      const merged = [...compradosDaNuvem];
+      listaLocal.forEach(local => {
+        if (!merged.some(c => c.id === local.id)) {
+          merged.push(local);
+        }
+      });
+      saveCompradosList(merged);
+    }
+
     return data;
   } catch (err) {
     console.warn('[Supabase] Falha ao buscar presentes da nuvem, usando cache local:', err);
@@ -248,15 +274,17 @@ function isItemComprado(id) {
 /**
  * Marca um item como comprado (no localStorage e no Supabase).
  * @param {number} id
- * @param {string} [nomeConvidado]
+ * @param {string} [nomeConvidado] - Nome informado pelo convidado (opcional)
+ * @param {Object|null} [auditInfo] - Dados de auditoria do dispositivo (coletarAuditoria)
  */
-async function marcarComoComprado(id, nomeConvidado) {
+async function marcarComoComprado(id, nomeConvidado, auditInfo) {
   const list = getCompradosList();
   if (!list.some(c => c.id === id)) {
     const registro = {
       id,
       timestamp: new Date().toISOString(),
-      nomeConvidado: nomeConvidado || ''
+      nomeConvidado: nomeConvidado || '',
+      audit_info: auditInfo || null
     };
     list.push(registro);
     saveCompradosList(list);
@@ -265,13 +293,28 @@ async function marcarComoComprado(id, nomeConvidado) {
     const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
     if (sb) {
       try {
-        await sb.from('presentes_itens').update({
+        const payload = {
           is_purchased: true,
           purchased_by: nomeConvidado || '',
           purchased_at: new Date().toISOString()
-        }).eq('id', id);
+        };
+        // Tenta salvar audit_info (requer coluna audit_info jsonb na tabela)
+        if (auditInfo) {
+          payload.audit_info = auditInfo;
+        }
+        await sb.from('presentes_itens').update(payload).eq('id', id);
       } catch (e) {
         console.warn('[Supabase] Erro ao marcar comprado na nuvem:', e);
+        // Tenta novamente sem audit_info caso coluna não exista
+        try {
+          await sb.from('presentes_itens').update({
+            is_purchased: true,
+            purchased_by: nomeConvidado || '',
+            purchased_at: new Date().toISOString()
+          }).eq('id', id);
+        } catch (e2) {
+          console.warn('[Supabase] Erro também sem audit_info:', e2);
+        }
       }
     }
   }
@@ -298,4 +341,60 @@ async function desmarcarComprado(id) {
       console.warn('[Supabase] Erro ao desmarcar comprado na nuvem:', e);
     }
   }
+}
+
+/**
+ * Inicia a subscrição Realtime do Supabase para a tabela presentes_itens.
+ * Quando outro convidado marcar um item como comprado, o callback é chamado
+ * com os dados atualizados para que a UI possa ser atualizada sem reload.
+ * @param {function(newRow: Object): void} onUpdate - Chamado com a nova linha
+ * @returns {function(): void} Função para cancelar a subscrição
+ */
+function iniciarRealtimePresentes(onUpdate) {
+  const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+  if (!sb || typeof sb.channel !== 'function') return () => {};
+
+  const channel = sb
+    .channel('presentes-realtime')
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'presentes_itens' },
+      (payload) => {
+        if (payload && payload.new) {
+          const updatedRow = payload.new;
+
+          // Se o item foi marcado como comprado, atualiza a lista local
+          if (updatedRow.is_purchased === true) {
+            const list = getCompradosList();
+            if (!list.some(c => c.id === updatedRow.id)) {
+              list.push({
+                id: updatedRow.id,
+                timestamp: updatedRow.purchased_at || new Date().toISOString(),
+                nomeConvidado: updatedRow.purchased_by || '',
+                audit_info: updatedRow.audit_info || null
+              });
+              saveCompradosList(list);
+            }
+          } else if (updatedRow.is_purchased === false) {
+            // Item foi restaurado — remove do cache local
+            const list = getCompradosList().filter(c => c.id !== updatedRow.id);
+            saveCompradosList(list);
+          }
+
+          if (typeof onUpdate === 'function') {
+            onUpdate(updatedRow);
+          }
+        }
+      }
+    )
+    .subscribe((status) => {
+      if (status === 'CHANNEL_ERROR') {
+        console.warn('[Supabase Realtime] Erro no canal presentes-realtime.');
+      }
+    });
+
+  // Retorna função de cancelamento
+  return () => {
+    try { sb.removeChannel(channel); } catch (_) {}
+  };
 }
