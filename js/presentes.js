@@ -277,34 +277,51 @@
     const honeypotInput = overlay.querySelector('#compra-hp');
     nomeInput.focus();
 
-    overlay.querySelector('#btn-confirmar-compra').addEventListener('click', async (e) => {
+    const btnConfirm = overlay.querySelector('#btn-confirmar-compra');
+    const btnCancel = overlay.querySelector('#btn-cancelar-compra');
+
+    btnConfirm.addEventListener('click', async (e) => {
+      if (btnConfirm.disabled) return;
+      btnConfirm.disabled = true;
+      btnCancel.disabled = true;
+      btnConfirm.style.opacity = '0.7';
+      btnConfirm.innerHTML = `
+        <svg class="pr-spinner" viewBox="0 0 50 50" width="14" height="14" style="animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 6px;">
+          <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" stroke-dasharray="80" stroke-dashoffset="60"></circle>
+        </svg>
+        Confirmando...
+      `;
+
       const nome = nomeInput.value.trim();
       const tempoModalMs = Date.now() - _modalAbertaEm;
       const isTrusted = e.isTrusted === true;
       const honeypotPreenchido = (honeypotInput && honeypotInput.value.trim() !== '');
 
-      // Coleta auditoria assincronamente (não bloqueia a UI)
+      // Coleta auditoria assincronamente com timeout de segurança
       let auditInfo = null;
       if (typeof coletarAuditoria === 'function') {
         try {
-          auditInfo = await coletarAuditoria({ isTrusted, tempoModalMs, honeypotPreenchido });
+          const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 3000));
+          auditInfo = await Promise.race([
+            coletarAuditoria({ isTrusted, tempoModalMs, honeypotPreenchido }),
+            timeoutPromise
+          ]);
         } catch (err) {
           console.warn('[Audit] Falha ao coletar auditoria:', err);
         }
       }
 
-      marcarComoComprado(itemId, nome, auditInfo);
-      let ids = getSacolaIds().filter(i => i !== itemId);
-      saveSacolaIds(ids);
+      await marcarComoComprado(itemId, nome, auditInfo);
+      
       overlay.classList.remove('open');
-      setTimeout(() => overlay.remove(), 350);
+      setTimeout(() => overlay.remove(), 300);
       renderContent(activeCategory);
       renderSacola();
       atualizarBadgeSacola();
       mostrarToastCompra(item.name);
     });
 
-    overlay.querySelector('#btn-cancelar-compra').addEventListener('click', () => {
+    btnCancel.addEventListener('click', () => {
       overlay.classList.remove('open');
       setTimeout(() => overlay.remove(), 350);
     });

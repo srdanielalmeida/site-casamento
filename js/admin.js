@@ -88,18 +88,6 @@
 
         if (cloudData && cloudData.items && cloudData.items.length > 0) {
           data = cloudData;
-          // Sincroniza itens marcados como comprados da nuvem para o cache
-          const compradosDaNuvem = cloudData.items
-            .filter(it => it.is_purchased)
-            .map(it => ({
-              id: it.id,
-              timestamp: it.purchased_at || new Date().toISOString(),
-              nomeConvidado: it.purchased_by || '',
-              audit_info: it.audit_info || null
-            }));
-          if (compradosDaNuvem.length > 0) {
-            saveCompradosList(compradosDaNuvem);
-          }
         }
 
         if (!rsvpRes.error && Array.isArray(rsvpRes.data)) {
@@ -251,12 +239,14 @@
 
     // Event listeners — Restaurar presentes
     container.querySelectorAll('[data-restaurar-id]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = parseInt(btn.dataset.restaurarId);
         const item = allItems.find(it => it.id === id);
         const nome = item ? item.name : `ID ${id}`;
         if (confirm(`Restaurar "${nome}" para a lista de presentes disponíveis?`)) {
-          desmarcarComprado(id);
+          btn.disabled = true;
+          btn.textContent = 'Restaurando...';
+          await desmarcarComprado(id);
           renderAll();
         }
       });

@@ -856,9 +856,238 @@ function savePresentesData(data) {
   localStorage.setItem('presentes_data', JSON.stringify(data));
 }
 
+/* ============================================================
+   SACOLA DE PRESENTES — Funções utilitárias & Sincronização
+   ============================================================ */
+
+const LS_MINHA_SACOLA          = 'presentes_minha_sacola';
+const LS_COMPRADOS             = 'presentes_comprados';
+const LS_COMPRADOS_PENDENTES   = 'presentes_comprados_pendentes';
+
+/**
+ * Retorna IDs dos presentes separados neste dispositivo.
+ * @returns {number[]}
+ */
+function getSacolaIds() {
+  try {
+    const raw = localStorage.getItem(LS_MINHA_SACOLA);
+    const arr = JSON.parse(raw || '[]');
+    return Array.isArray(arr) ? arr.map(Number) : [];
+  } catch (_) { return []; }
+}
+
+/**
+ * Salva IDs da sacola no localStorage.
+ * @param {number[]} ids
+ */
+function saveSacolaIds(ids) {
+  localStorage.setItem(LS_MINHA_SACOLA, JSON.stringify((ids || []).map(Number)));
+}
+
+/**
+ * Retorna lista de presentes comprados (compartilhada / local).
+ * @returns {{ id: number, timestamp: string, nomeConvidado: string, audit_info?: any }[]}
+ */
+function getCompradosList() {
+  try {
+    const raw = localStorage.getItem(LS_COMPRADOS);
+    const arr = JSON.parse(raw || '[]');
+    return Array.isArray(arr) ? arr.map(item => ({ ...item, id: Number(item.id) })) : [];
+  } catch (_) { return []; }
+}
+
+/**
+ * Salva lista de presentes comprados no localStorage.
+ */
+function saveCompradosList(list) {
+  const normalized = (list || []).map(item => ({ ...item, id: Number(item.id) }));
+  localStorage.setItem(LS_COMPRADOS, JSON.stringify(normalized));
+}
+
+/**
+ * Retorna lista de itens comprados pendentes de envio ao Supabase.
+ * @returns {{ id: number, nomeConvidado: string, audit_info?: any, timestamp: string }[]}
+ */
+function getCompradosPendentes() {
+  try {
+    const raw = localStorage.getItem(LS_COMPRADOS_PENDENTES);
+    const arr = JSON.parse(raw || '[]');
+    return Array.isArray(arr) ? arr.map(item => ({ ...item, id: Number(item.id) })) : [];
+  } catch (_) { return []; }
+}
+
+/**
+ * Salva lista de pendências no localStorage.
+ */
+function saveCompradosPendentes(list) {
+  localStorage.setItem(LS_COMPRADOS_PENDENTES, JSON.stringify((list || []).map(item => ({ ...item, id: Number(item.id) }))));
+}
+
+/**
+ * Verifica se um item está comprado.
+ * @param {number|string} id
+ * @returns {boolean}
+ */
+function isItemComprado(id) {
+  const numId = Number(id);
+  return getCompradosList().some(c => Number(c.id) === numId);
+}
+
+/**
+ * Tenta enviar o status de comprado de um item diretamente ao Supabase.
+ * @param {number} id
+ * @param {string} [nomeConvidado]
+ * @param {Object|null} [auditInfo]
+ * @param {string} [timestamp]
+ * @returns {Promise<boolean>} Retorna true se gravou com sucesso no Supabase.
+ */
+async function _enviarCompraSupabase(id, nomeConvidado, auditInfo, timestamp) {
+  const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+  if (!sb) return false;
+
+  const numId = Number(id);
+  const ts = timestamp || new Date().toISOString();
+  const nome = nomeConvidado || '';
+
+  // 1ª tentativa: Payload completo com audit_info
+  try {
+    const payload = {
+      is_purchased: true,
+      purchased_by: nome,
+      purchased_at: ts
+    };
+    if (auditInfo) {
+      payload.audit_info = auditInfo;
+    }
+
+    const res = await sb.from('presentes_itens').update(payload).eq('id', numId);
+    if (!res.error) {
+      return true;
+    }
+    console.warn('[Supabase] Erro ao atualizar item com audit_info:', res.error);
+  } catch (err) {
+    console.warn('[Supabase] Exceção na 1ª tentativa com audit_info:', err);
+  }
+
+  // 2ª tentativa: Payload simples sem audit_info (fallback de schema)
+  try {
+    const res2 = await sb.from('presentes_itens').update({
+      is_purchased: true,
+      purchased_by: nome,
+      purchased_at: ts
+    }).eq('id', numId);
+
+    if (!res2.error) {
+      return true;
+    }
+    console.warn('[Supabase] Erro também no fallback sem audit_info:', res2.error);
+  } catch (err2) {
+    console.warn('[Supabase] Exceção no fallback simples:', err2);
+  }
+
+  return false;
+}
+
+/**
+ * Processa a fila de compras pendentes de sincronização com o Supabase.
+ */
+async function processarSincronizacaoPendentes() {
+  const pendentes = getCompradosPendentes();
+  if (pendentes.length === 0) return;
+
+  const restantes = [];
+  for (const item of pendentes) {
+    const sucesso = await _enviarCompraSupabase(item.id, item.nomeConvidado, item.audit_info, item.timestamp);
+    if (!sucesso) {
+      restantes.push(item);
+    }
+  }
+  saveCompradosPendentes(restantes);
+}
+
+/**
+ * Marca um item como comprado (no localStorage de forma resiliente e no Supabase).
+ * @param {number|string} id
+ * @param {string} [nomeConvidado] - Nome informado pelo convidado (opcional)
+ * @param {Object|null} [auditInfo] - Dados de auditoria do dispositivo (coletarAuditoria)
+ * @returns {Promise<boolean>}
+ */
+async function marcarComoComprado(id, nomeConvidado, auditInfo) {
+  const numId = Number(id);
+  const list = getCompradosList();
+  const timestamp = new Date().toISOString();
+  const nome = nomeConvidado || '';
+
+  // 1. Grava no cache local imediatamente
+  if (!list.some(c => Number(c.id) === numId)) {
+    const registro = {
+      id: numId,
+      timestamp,
+      nomeConvidado: nome,
+      audit_info: auditInfo || null
+    };
+    list.push(registro);
+    saveCompradosList(list);
+  }
+
+  // 2. Remove da sacola local
+  let sacolaIds = getSacolaIds().filter(i => Number(i) !== numId);
+  saveSacolaIds(sacolaIds);
+
+  // 3. Adiciona à fila de pendências
+  const pendentes = getCompradosPendentes().filter(p => Number(p.id) !== numId);
+  pendentes.push({ id: numId, nomeConvidado: nome, audit_info: auditInfo || null, timestamp });
+  saveCompradosPendentes(pendentes);
+
+  // 4. Tenta sincronizar com o Supabase
+  const sucessoNuvem = await _enviarCompraSupabase(numId, nome, auditInfo, timestamp);
+  if (sucessoNuvem) {
+    // Se a nuvem confirmou, remove da fila de pendentes
+    const atualizados = getCompradosPendentes().filter(p => Number(p.id) !== numId);
+    saveCompradosPendentes(atualizados);
+  }
+
+  return true;
+}
+
+/**
+ * Desmarca um item como comprado (restaurar).
+ * @param {number|string} id
+ */
+async function desmarcarComprado(id) {
+  const numId = Number(id);
+
+  // 1. Remove do cache local
+  const list = getCompradosList().filter(c => Number(c.id) !== numId);
+  saveCompradosList(list);
+
+  // 2. Remove das pendências
+  const pendentes = getCompradosPendentes().filter(p => Number(p.id) !== numId);
+  saveCompradosPendentes(pendentes);
+
+  // 3. Sincroniza com Supabase se disponível
+  const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+  if (sb) {
+    try {
+      const res = await sb.from('presentes_itens').update({
+        is_purchased: false,
+        purchased_by: '',
+        purchased_at: null,
+        audit_info: null
+      }).eq('id', numId);
+
+      if (res.error) {
+        console.warn('[Supabase] Erro ao desmarcar comprado na nuvem:', res.error);
+      }
+    } catch (e) {
+      console.warn('[Supabase] Exceção ao desmarcar comprado na nuvem:', e);
+    }
+  }
+}
+
 /**
  * Busca dados em nuvem do Supabase de forma assíncrona.
- * Se configurado, atualiza o cache local e retorna os dados mais recentes.
+ * Se configurado, atualiza o cache local e retorna os dados mais recentes com MERGE NÃO-DESTRUTIVO.
  */
 async function fetchPresentesDataFromSupabase() {
   const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
@@ -879,149 +1108,42 @@ async function fetchPresentesDataFromSupabase() {
     const data = { categories, items };
     savePresentesData(data);
 
-    // ── Sincroniza itens comprados na nuvem para o cache local ──────────────
-    if (itemsRes.data && itemsRes.data.length > 0) {
-      const compradosDaNuvem = itemsRes.data
-        .filter(it => it.is_purchased === true)
-        .map(it => ({
-          id: it.id,
-          timestamp: it.purchased_at || new Date().toISOString(),
-          nomeConvidado: it.purchased_by || '',
-          audit_info: it.audit_info || null
-        }));
+    // ── MERGE SEGURO DE ITENS COMPRADOS (NÃO DESTRUTIVO) ──────────────
+    const compradosLocais = getCompradosList();
+    const mapaComprados = new Map();
 
-      saveCompradosList(compradosDaNuvem);
+    // 1. Coloca os itens locais no mapa
+    compradosLocais.forEach(item => {
+      mapaComprados.set(Number(item.id), item);
+    });
+
+    // 2. Mescla itens confirmados na nuvem
+    if (itemsRes.data && itemsRes.data.length > 0) {
+      itemsRes.data.forEach(it => {
+        const numId = Number(it.id);
+        if (it.is_purchased === true) {
+          mapaComprados.set(numId, {
+            id: numId,
+            timestamp: it.purchased_at || new Date().toISOString(),
+            nomeConvidado: it.purchased_by || '',
+            audit_info: it.audit_info || null
+          });
+        }
+      });
     }
+
+    const compradosMesclados = Array.from(mapaComprados.values());
+    saveCompradosList(compradosMesclados);
+
+    // 3. Tenta descarregar compras pendentes que ainda não subiram
+    processarSincronizacaoPendentes().catch(err => {
+      console.warn('[Sync] Falha ao processar pendências em segundo plano:', err);
+    });
 
     return data;
   } catch (err) {
     console.warn('[Supabase] Falha ao buscar presentes da nuvem, usando dados completos locais:', err);
-    return PRESENTES_DEFAULT_DATA;
-  }
-}
-
-/* ============================================================
-   SACOLA DE PRESENTES — Funções utilitárias
-   ============================================================ */
-
-const LS_MINHA_SACOLA = 'presentes_minha_sacola';
-const LS_COMPRADOS    = 'presentes_comprados';
-
-/**
- * Retorna IDs dos presentes separados neste dispositivo.
- * @returns {number[]}
- */
-function getSacolaIds() {
-  try {
-    const raw = localStorage.getItem(LS_MINHA_SACOLA);
-    const arr = JSON.parse(raw || '[]');
-    return Array.isArray(arr) ? arr : [];
-  } catch (_) { return []; }
-}
-
-/**
- * Salva IDs da sacola no localStorage.
- * @param {number[]} ids
- */
-function saveSacolaIds(ids) {
-  localStorage.setItem(LS_MINHA_SACOLA, JSON.stringify(ids));
-}
-
-/**
- * Retorna lista de presentes comprados (compartilhada).
- * @returns {{ id: number, timestamp: string, nomeConvidado: string, audit_info?: any }[]}
- */
-function getCompradosList() {
-  try {
-    const raw = localStorage.getItem(LS_COMPRADOS);
-    const arr = JSON.parse(raw || '[]');
-    return Array.isArray(arr) ? arr : [];
-  } catch (_) { return []; }
-}
-
-/**
- * Salva lista de presentes comprados no localStorage.
- */
-function saveCompradosList(list) {
-  localStorage.setItem(LS_COMPRADOS, JSON.stringify(list));
-}
-
-/**
- * Verifica se um item está comprado.
- * @param {number} id
- * @returns {boolean}
- */
-function isItemComprado(id) {
-  return getCompradosList().some(c => c.id === id);
-}
-
-/**
- * Marca um item como comprado (no localStorage e no Supabase).
- * @param {number} id
- * @param {string} [nomeConvidado] - Nome informado pelo convidado (opcional)
- * @param {Object|null} [auditInfo] - Dados de auditoria do dispositivo (coletarAuditoria)
- */
-async function marcarComoComprado(id, nomeConvidado, auditInfo) {
-  const list = getCompradosList();
-  if (!list.some(c => c.id === id)) {
-    const registro = {
-      id,
-      timestamp: new Date().toISOString(),
-      nomeConvidado: nomeConvidado || '',
-      audit_info: auditInfo || null
-    };
-    list.push(registro);
-    saveCompradosList(list);
-
-    // Sincroniza com Supabase se disponível
-    const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
-    if (sb) {
-      try {
-        const payload = {
-          is_purchased: true,
-          purchased_by: nomeConvidado || '',
-          purchased_at: new Date().toISOString()
-        };
-        if (auditInfo) {
-          payload.audit_info = auditInfo;
-        }
-        await sb.from('presentes_itens').update(payload).eq('id', id);
-      } catch (e) {
-        console.warn('[Supabase] Erro ao marcar comprado na nuvem:', e);
-        try {
-          await sb.from('presentes_itens').update({
-            is_purchased: true,
-            purchased_by: nomeConvidado || '',
-            purchased_at: new Date().toISOString()
-          }).eq('id', id);
-        } catch (e2) {
-          console.warn('[Supabase] Erro também sem audit_info:', e2);
-        }
-      }
-    }
-  }
-}
-
-/**
- * Desmarca um item como comprado (restaurar).
- * @param {number} id
- */
-async function desmarcarComprado(id) {
-  const list = getCompradosList().filter(c => c.id !== id);
-  saveCompradosList(list);
-
-  // Sincroniza com Supabase se disponível
-  const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
-  if (sb) {
-    try {
-      await sb.from('presentes_itens').update({
-        is_purchased: false,
-        purchased_by: '',
-        purchased_at: null
-      }).eq('id', id);
-    } catch (e) {
-      console.warn('[Supabase] Erro ao desmarcar comprado na nuvem:', e);
-    }
+    return getPresentesData();
   }
 }
 
@@ -1042,12 +1164,13 @@ function iniciarRealtimePresentes(onUpdate) {
       (payload) => {
         if (payload && payload.new) {
           const updatedRow = payload.new;
+          const numId = Number(updatedRow.id);
 
           if (updatedRow.is_purchased === true) {
             const list = getCompradosList();
-            if (!list.some(c => c.id === updatedRow.id)) {
+            if (!list.some(c => Number(c.id) === numId)) {
               list.push({
-                id: updatedRow.id,
+                id: numId,
                 timestamp: updatedRow.purchased_at || new Date().toISOString(),
                 nomeConvidado: updatedRow.purchased_by || '',
                 audit_info: updatedRow.audit_info || null
@@ -1055,7 +1178,7 @@ function iniciarRealtimePresentes(onUpdate) {
               saveCompradosList(list);
             }
           } else if (updatedRow.is_purchased === false) {
-            const list = getCompradosList().filter(c => c.id !== updatedRow.id);
+            const list = getCompradosList().filter(c => Number(c.id) !== numId);
             saveCompradosList(list);
           }
 
