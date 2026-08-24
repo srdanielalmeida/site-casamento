@@ -182,111 +182,175 @@
 
 
 /* ────────────────────────────────────────────
-   GUIA INTEGRADO NA INTRODUÇÃO (COMO PRESENTEAR)
+   GUIA DE 3 PASSOS — FORMATO NOBRE E FLUIDO
 ──────────────────────────────────────────── */
-.pr-guide-box {
-  margin: 1.5rem 0 0.8rem;
-  padding: 1.6rem 1.8rem;
-  background: rgba(4, 9, 18, 0.75);
-  border: 1px solid rgba(201, 168, 76, 0.4);
+.pr-steps-flow {
+  margin: 2rem 0 1.2rem;
+  padding: 1.8rem 1.6rem;
+  background: linear-gradient(180deg, rgba(14, 28, 54, 0.65) 0%, rgba(7, 16, 32, 0.85) 100%);
+  border: 1px solid rgba(201, 168, 76, 0.35);
   border-radius: 4px;
   position: relative;
-  text-align: left;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.3), 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-.pr-guide-header {
-  margin-bottom: 1.2rem;
-  text-align: center;
-}
-
-.pr-guide-tag {
-  font-family: var(--font-cormorant-sc, serif);
-  font-size: 0.76rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--gold-light);
-  font-weight: 700;
-  display: inline-block;
-  padding: 0.35rem 1.1rem;
-  background: rgba(201, 168, 76, 0.12);
-  border: 1px solid rgba(201, 168, 76, 0.35);
-  border-radius: 2px;
-}
-
-.pr-guide-steps {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.2rem;
-}
-
-.pr-guide-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.9rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(201, 168, 76, 0.22);
-  padding: 1.1rem 1rem;
-  border-radius: 3px;
-}
-
-.pr-guide-step-highlight {
-  background: rgba(201, 168, 76, 0.09);
-  border-color: rgba(201, 168, 76, 0.55);
-}
-
-.pr-guide-step-num {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(201, 168, 76, 0.15);
-  border: 1px solid rgba(201, 168, 76, 0.4);
-  color: var(--gold-light);
+.pr-steps-header {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.8rem;
+  margin-bottom: 1.6rem;
+}
+
+.pr-steps-ornament {
+  color: var(--gold-light);
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.pr-steps-heading {
   font-family: var(--font-cormorant-sc, serif);
-  font-size: 0.88rem;
-  font-weight: 700;
-  flex-shrink: 0;
+  font-size: 0.95rem;
+  letter-spacing: 3.5px;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  font-weight: 600;
+  margin: 0;
 }
 
-.pr-guide-step-num-gold {
-  background: linear-gradient(135deg, #F5EDD6 0%, #E8C86A 100%);
-  color: #0B1E3D;
-  border-color: #C9A84C;
+.pr-steps-timeline {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: start;
+  gap: 1.8rem;
 }
 
-.pr-guide-step-info {
+.pr-step-item {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
 }
 
-.pr-guide-step-info strong {
-  font-family: var(--font-cormorant, serif);
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+.pr-step-icon-badge {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--gold-light);
-  line-height: 1.3;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.pr-guide-step-info span {
+.pr-step-icon-badge-gold {
+  background: linear-gradient(135deg, rgba(201, 168, 76, 0.25) 0%, rgba(201, 168, 76, 0.1) 100%);
+  border-color: #E8C86A;
+  color: #F5EDD6;
+  box-shadow: 0 0 16px rgba(201, 168, 76, 0.25);
+}
+
+.pr-step-count {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #0B1E3D;
+  border: 1px solid #C9A84C;
+  color: #E8C86A;
+  font-family: var(--font-cormorant-sc, serif);
+  font-size: 0.62rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pr-step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pr-step-title {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.pr-step-desc {
   font-family: var(--font-simple);
   font-size: 0.85rem;
   color: var(--text-cream);
   opacity: 0.9;
-  line-height: 1.45;
+  line-height: 1.55;
+  margin: 0;
 }
 
-.pr-guide-step-info span strong {
-  color: #FFFFFF;
+.pr-step-desc em {
+  color: var(--gold-light);
+  font-style: normal;
+  font-weight: 600;
 }
 
-@media (max-width: 850px) {
-  .pr-guide-steps {
+.pr-intro-obs {
+  font-family: var(--font-simple);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--gold-light);
+  opacity: 0.9;
+  text-align: center;
+  margin-top: 0.8rem;
+  padding: 0 1rem;
+}
+
+.pr-intro-obs-star {
+  color: var(--gold-light);
+  font-weight: bold;
+}
+
+/* Responsividade Mobile para pr-steps-flow */
+@media (max-width: 800px) {
+  .pr-steps-timeline {
     grid-template-columns: 1fr;
-    gap: 0.8rem;
+    gap: 0.75rem;
+  }
+  .pr-step-item {
+    flex-direction: row;
+    text-align: left;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(201, 168, 76, 0.2);
+    border-radius: 4px;
+  }
+  .pr-step-icon-badge {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+  }
+  .pr-step-title {
+    font-size: 0.96rem;
+  }
+  .pr-step-desc {
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+  .pr-intro-obs {
+    font-size: 0.82rem;
+    padding: 0;
   }
 }
 

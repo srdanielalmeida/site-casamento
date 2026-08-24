@@ -7,101 +7,139 @@
   <meta name="description" content="Lista de presentes do casamento de Daniel e Franciellen Maria, 31 de outubro de 2026.">
 
   <link rel="icon" type="image/png" href="images/brasao/Gemini_Generated_Image_cqwzlmcqwzlmcqwz 1.png">
-  <link rel="stylesheet" href="css/style.css?v=8.0">
-  <link rel="stylesheet" href="css/presentes.css?v=8.0">
+  <link rel="stylesheet" href="css/style.css?v=8.2">
+  <link rel="stylesheet" href="css/presentes.css?v=8.2">
   <style>
-    /* Estilos inline de garantia para o Guia e Botões */
-    .pr-guide-box {
-      margin: 1.5rem 0 0.8rem;
-      padding: 1.6rem 1.8rem;
-      background: rgba(4, 9, 18, 0.75);
-      border: 1px solid rgba(201, 168, 76, 0.4);
+    /* Estilos inline de garantia para o Guia Nobre e Botões */
+    .pr-steps-flow {
+      margin: 2rem 0 1.2rem;
+      padding: 1.8rem 1.6rem;
+      background: linear-gradient(180deg, rgba(14, 28, 54, 0.65) 0%, rgba(7, 16, 32, 0.85) 100%);
+      border: 1px solid rgba(201, 168, 76, 0.35);
       border-radius: 4px;
       position: relative;
-      text-align: left;
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.3), 0 4px 20px rgba(0, 0, 0, 0.15);
     }
-    .pr-guide-header { margin-bottom: 1.2rem; text-align: center; }
-    .pr-guide-tag {
-      font-family: 'Cinzel', 'Cormorant Garamond', serif;
-      font-size: 0.76rem;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: #E8C86A;
-      font-weight: 700;
-      display: inline-block;
-      padding: 0.35rem 1.1rem;
-      background: rgba(201, 168, 76, 0.12);
-      border: 1px solid rgba(201, 168, 76, 0.35);
-      border-radius: 2px;
-    }
-    .pr-guide-steps {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.2rem;
-    }
-    .pr-guide-step {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.9rem;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(201, 168, 76, 0.22);
-      padding: 1.1rem 1rem;
-      border-radius: 3px;
-    }
-    .pr-guide-step-highlight {
-      background: rgba(201, 168, 76, 0.09);
-      border-color: rgba(201, 168, 76, 0.55);
-    }
-    .pr-guide-step-num {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: rgba(201, 168, 76, 0.15);
-      border: 1px solid rgba(201, 168, 76, 0.4);
-      color: #E8C86A;
+    .pr-steps-header {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Cinzel', serif;
-      font-size: 0.88rem;
-      font-weight: 700;
-      flex-shrink: 0;
+      gap: 0.8rem;
+      margin-bottom: 1.6rem;
     }
-    .pr-guide-step-num-gold {
-      background: linear-gradient(135deg, #F5EDD6 0%, #E8C86A 100%);
-      color: #0B1E3D;
-      border-color: #C9A84C;
+    .pr-steps-ornament { color: #E8C86A; font-size: 0.75rem; opacity: 0.75; }
+    .pr-steps-heading {
+      font-family: 'Cinzel', 'Cormorant Garamond', serif;
+      font-size: 0.95rem;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      color: #E8C86A;
+      font-weight: 600;
+      margin: 0;
     }
-    .pr-guide-step-info {
+    .pr-steps-timeline {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: start;
+      gap: 1.8rem;
+    }
+    .pr-step-item {
       display: flex;
       flex-direction: column;
-      gap: 0.3rem;
+      align-items: center;
+      text-align: center;
+      gap: 0.75rem;
+      padding: 0.5rem;
     }
-    .pr-guide-step-info strong {
-      font-family: 'Cinzel', 'Cormorant Garamond', serif;
-      font-size: 0.98rem;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+    .pr-step-icon-badge {
+      position: relative;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(201, 168, 76, 0.12);
+      border: 1px solid rgba(201, 168, 76, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: #E8C86A;
-      line-height: 1.3;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
-    .pr-guide-step-info span {
+    .pr-step-icon-badge-gold {
+      background: linear-gradient(135deg, rgba(201, 168, 76, 0.25) 0%, rgba(201, 168, 76, 0.1) 100%);
+      border-color: #E8C86A;
+      color: #F5EDD6;
+      box-shadow: 0 0 16px rgba(201, 168, 76, 0.25);
+    }
+    .pr-step-count {
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #0B1E3D;
+      border: 1px solid #C9A84C;
+      color: #E8C86A;
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pr-step-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .pr-step-title {
+      font-family: 'Cinzel', 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-weight: 400;
+      letter-spacing: 1px;
+      color: #FFFFFF;
+      margin: 0;
+    }
+    .pr-step-desc {
       font-family: 'Montserrat', sans-serif;
       font-size: 0.85rem;
       color: #FAF5E8;
+      opacity: 0.88;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .pr-step-desc em {
+      color: #E8C86A;
+      font-style: normal;
+      font-weight: 600;
+    }
+    .pr-intro-obs {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #E8C86A;
       opacity: 0.9;
-      line-height: 1.45;
+      text-align: center;
+      margin-top: 0.8rem;
+      padding: 0 1rem;
     }
-    @media (max-width: 850px) {
-      .pr-guide-steps { grid-template-columns: 1fr; gap: 0.8rem; }
-    }
-    @media (max-width: 600px) {
-      .pr-guide-box { padding: 1.1rem 0.9rem; margin: 1rem 0 0.5rem; }
-      .pr-guide-tag { font-size: 0.65rem; padding: 0.25rem 0.7rem; letter-spacing: 2px; }
-      .pr-guide-step { padding: 0.85rem 0.75rem; gap: 0.65rem; }
-      .pr-guide-step-num { width: 26px; height: 26px; font-size: 0.75rem; }
-      .pr-guide-step-info strong { font-size: 0.88rem; }
-      .pr-guide-step-info span { font-size: 0.78rem; line-height: 1.35; }
+    .pr-intro-obs-star { color: #E8C86A; font-weight: bold; }
+    @media (max-width: 800px) {
+      .pr-steps-timeline { grid-template-columns: 1fr; gap: 0.75rem; }
+      .pr-step-item {
+        flex-direction: row;
+        text-align: left;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(201, 168, 76, 0.2);
+        border-radius: 4px;
+      }
+      .pr-step-icon-badge { flex-shrink: 0; width: 40px; height: 40px; }
+      .pr-step-title { font-size: 0.96rem; }
+      .pr-step-desc { font-size: 0.82rem; line-height: 1.4; }
+      .pr-intro-obs { font-size: 0.82rem; padding: 0; }
     }
   </style>
 </head>
@@ -176,38 +214,63 @@
             Para os que desejarem nos presentear e nos ajudar a <em>edificar os alicerces da nossa nova morada</em>, preparamos com carinho nossa lista de presentes. Nosso desejo é <strong>zerar todos os itens</strong> para a montagem do nosso novo lar!
           </p>
 
-          <!-- Box de Orientação Integrado -->
-          <div class="pr-guide-box">
-            <div class="pr-guide-header">
-              <span class="pr-guide-tag">COMO PRESENTEAR EM 3 PASSOS SIMPLES</span>
+          <!-- GUIA ELEGANTE DE 3 PASSOS -->
+          <div class="pr-steps-flow">
+            <div class="pr-steps-header">
+              <span class="pr-steps-ornament">✦</span>
+              <h3 class="pr-steps-heading">Como Funciona a Lista</h3>
+              <span class="pr-steps-ornament">✦</span>
             </div>
-            <div class="pr-guide-steps">
-              <div class="pr-guide-step">
-                <div class="pr-guide-step-num">1</div>
-                <div class="pr-guide-step-info">
-                  <strong>Separe no Coração (🤍)</strong>
-                  <span>Clique no coração no canto da foto para colocar o item na sua Sacola.</span>
+
+            <div class="pr-steps-timeline">
+              <!-- Passo 1 -->
+              <div class="pr-step-item">
+                <div class="pr-step-icon-badge">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                  <span class="pr-step-count">1</span>
+                </div>
+                <div class="pr-step-content">
+                  <h4 class="pr-step-title">Separe no Coração</h4>
+                  <p class="pr-step-desc">Clique no coração do card para guardar o presente na sua Sacola.</p>
                 </div>
               </div>
-              <div class="pr-guide-step">
-                <div class="pr-guide-step-num">2</div>
-                <div class="pr-guide-step-info">
-                  <strong>Compre na Loja (🛍️)</strong>
-                  <span>Adquira pelo link sugerido ou em qualquer loja de sua preferência.</span>
+
+              <!-- Passo 2 -->
+              <div class="pr-step-item">
+                <div class="pr-step-icon-badge">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                  </svg>
+                  <span class="pr-step-count">2</span>
+                </div>
+                <div class="pr-step-content">
+                  <h4 class="pr-step-title">Adquira na Loja</h4>
+                  <p class="pr-step-desc">Compre no link sugerido ou em qualquer outra loja física ou virtual.</p>
                 </div>
               </div>
-              <div class="pr-guide-step pr-guide-step-highlight">
-                <div class="pr-guide-step-num pr-guide-step-num-gold">3</div>
-                <div class="pr-guide-step-info">
-                  <strong>Marque como "Já Comprei!" (✅)</strong>
-                  <span>Clique em <em>Já Comprei!</em> para <strong>remover o item da lista</strong> e evitar compras repetidas.</span>
+
+              <!-- Passo 3 -->
+              <div class="pr-step-item pr-step-item-final">
+                <div class="pr-step-icon-badge pr-step-icon-badge-gold">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span class="pr-step-count">3</span>
+                </div>
+                <div class="pr-step-content">
+                  <h4 class="pr-step-title">Marque como Já Comprei</h4>
+                  <p class="pr-step-desc">Clique em <em>Já Comprei!</em> para retirar da lista e nos ajudar a zerar tudo!</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <p style="font-size: 0.92rem; opacity: 0.85; margin-top: 0.2rem; font-style: italic; color: var(--gold-light);">
-            * Observação: Os modelos e lojas indicados são apenas sugestões. Sintam-se totalmente livres para escolher a marca, modelo ou loja de sua preferência!
+          <p class="pr-intro-obs">
+            <span class="pr-intro-obs-star">*</span> <em>Observação: Os modelos e lojas indicados são apenas sugestões. Sintam-se totalmente livres para escolher a marca, modelo ou loja de sua preferência!</em>
           </p>
         </div>
       </div>
