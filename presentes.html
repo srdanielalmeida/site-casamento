@@ -7,8 +7,95 @@
   <meta name="description" content="Lista de presentes do casamento de Daniel e Franciellen Maria, 31 de outubro de 2026.">
 
   <link rel="icon" type="image/png" href="images/brasao/Gemini_Generated_Image_cqwzlmcqwzlmcqwz 1.png">
-  <link rel="stylesheet" href="css/style.css?v=5.3">
-  <link rel="stylesheet" href="css/presentes.css?v=5.3">
+  <link rel="stylesheet" href="css/style.css?v=8.0">
+  <link rel="stylesheet" href="css/presentes.css?v=8.0">
+  <style>
+    /* Estilos inline de garantia para o Guia e Botões */
+    .pr-guide-box {
+      margin: 1.5rem 0 0.8rem;
+      padding: 1.6rem 1.8rem;
+      background: rgba(4, 9, 18, 0.75);
+      border: 1px solid rgba(201, 168, 76, 0.4);
+      border-radius: 4px;
+      position: relative;
+      text-align: left;
+    }
+    .pr-guide-header { margin-bottom: 1.2rem; text-align: center; }
+    .pr-guide-tag {
+      font-family: 'Cinzel', 'Cormorant Garamond', serif;
+      font-size: 0.76rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #E8C86A;
+      font-weight: 700;
+      display: inline-block;
+      padding: 0.35rem 1.1rem;
+      background: rgba(201, 168, 76, 0.12);
+      border: 1px solid rgba(201, 168, 76, 0.35);
+      border-radius: 2px;
+    }
+    .pr-guide-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+    }
+    .pr-guide-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.9rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(201, 168, 76, 0.22);
+      padding: 1.1rem 1rem;
+      border-radius: 3px;
+    }
+    .pr-guide-step-highlight {
+      background: rgba(201, 168, 76, 0.09);
+      border-color: rgba(201, 168, 76, 0.55);
+    }
+    .pr-guide-step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(201, 168, 76, 0.15);
+      border: 1px solid rgba(201, 168, 76, 0.4);
+      color: #E8C86A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .pr-guide-step-num-gold {
+      background: linear-gradient(135deg, #F5EDD6 0%, #E8C86A 100%);
+      color: #0B1E3D;
+      border-color: #C9A84C;
+    }
+    .pr-guide-step-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .pr-guide-step-info strong {
+      font-family: 'Cinzel', 'Cormorant Garamond', serif;
+      font-size: 0.98rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #E8C86A;
+      line-height: 1.3;
+    }
+    .pr-guide-step-info span {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.85rem;
+      color: #FAF5E8;
+      opacity: 0.9;
+      line-height: 1.45;
+    }
+    @media (max-width: 850px) {
+      .pr-guide-steps { grid-template-columns: 1fr; gap: 0.8rem; }
+    }
+  </style>
 </head>
 <body>
 
@@ -68,7 +155,7 @@
       </div>
     </section>
 
-    <!-- ===== CARTA DE ABERTURA ===== -->
+    <!-- ===== CARTA DE ABERTURA & GUIA ===== -->
     <section class="pr-intro reveal">
       <div class="pr-intro-inner">
         <div class="pr-ornament" aria-hidden="true">◆ ◆ ◆</div>
@@ -78,68 +165,42 @@
             A maior bênção deste dia é ter cada um de vocês como testemunhas de nossa aliança sob a graça de Deus. A vossa presença, amizade e orações são os presentes mais valiosos que poderíamos receber.
           </p>
           <p>
-            Para os que desejarem nos presentear e nos ajudar a <em>edificar os alicerces da nossa nova morada</em>, preparamos com carinho uma lista de itens selecionados para a construção do nosso lar:
+            Para os que desejarem nos presentear e nos ajudar a <em>edificar os alicerces da nossa nova morada</em>, preparamos com carinho nossa lista de presentes. Nosso desejo é <strong>zerar todos os itens</strong> para a montagem do nosso novo lar!
           </p>
-          <p style="font-size: 0.95rem; opacity: 0.85; margin-top: 0.5rem; font-style: italic; color: var(--gold-light);">
+
+          <!-- Box de Orientação Integrado -->
+          <div class="pr-guide-box">
+            <div class="pr-guide-header">
+              <span class="pr-guide-tag">COMO PRESENTEAR EM 3 PASSOS SIMPLES</span>
+            </div>
+            <div class="pr-guide-steps">
+              <div class="pr-guide-step">
+                <div class="pr-guide-step-num">1</div>
+                <div class="pr-guide-step-info">
+                  <strong>Separe no Coração (🤍)</strong>
+                  <span>Clique no coração no canto da foto para colocar o item na sua Sacola.</span>
+                </div>
+              </div>
+              <div class="pr-guide-step">
+                <div class="pr-guide-step-num">2</div>
+                <div class="pr-guide-step-info">
+                  <strong>Compre na Loja (🛍️)</strong>
+                  <span>Adquira pelo link sugerido ou em qualquer loja de sua preferência.</span>
+                </div>
+              </div>
+              <div class="pr-guide-step pr-guide-step-highlight">
+                <div class="pr-guide-step-num pr-guide-step-num-gold">3</div>
+                <div class="pr-guide-step-info">
+                  <strong>Marque como "Já Comprei!" (✅)</strong>
+                  <span>Clique em <em>Já Comprei!</em> para <strong>remover o item da lista</strong> e evitar compras repetidas.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p style="font-size: 0.92rem; opacity: 0.85; margin-top: 0.2rem; font-style: italic; color: var(--gold-light);">
             * Observação: Os modelos e lojas indicados são apenas sugestões. Sintam-se totalmente livres para escolher a marca, modelo ou loja de sua preferência!
           </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== GUIA PASSO A PASSO / COMO FUNCIONA ===== -->
-    <section class="pr-howto reveal" id="como-funciona">
-      <div class="pr-howto-inner">
-        <div class="pr-ornament" aria-hidden="true">◆ ◆ ◆</div>
-        <h2 class="pr-howto-title">Como Funciona a Lista</h2>
-        <p class="pr-howto-lead">
-          Preparamos esta lista para que você possa escolher com facilidade. Nosso desejo é <strong>zerar todos os itens</strong> para a edificação do nosso lar:
-        </p>
-
-        <div class="pr-howto-grid">
-          <!-- Passo 1 -->
-          <div class="pr-howto-card">
-            <div class="pr-howto-badge">Passo 1</div>
-            <div class="pr-howto-icon-wrap">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
-            </div>
-            <h3 class="pr-howto-card-title">1. Separe no Coração</h3>
-            <p class="pr-howto-card-text">
-              Ao escolher um presente, clique no <strong>coração (🤍)</strong> no canto da foto para colocá-lo em sua <strong>Sacola</strong>.
-            </p>
-          </div>
-
-          <!-- Passo 2 -->
-          <div class="pr-howto-card">
-            <div class="pr-howto-badge">Passo 2</div>
-            <div class="pr-howto-icon-wrap">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <path d="M16 10a4 4 0 0 1-8 0"/>
-              </svg>
-            </div>
-            <h3 class="pr-howto-card-title">2. Compre na Loja</h3>
-            <p class="pr-howto-card-text">
-              Clique no botão da loja indicada para comprar online, ou adquira na loja física/virtual de sua preferência.
-            </p>
-          </div>
-
-          <!-- Passo 3 -->
-          <div class="pr-howto-card pr-howto-card-highlight">
-            <div class="pr-howto-badge pr-howto-badge-gold">Passo 3 (Importante)</div>
-            <div class="pr-howto-icon-wrap pr-howto-icon-wrap-gold">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2">
-                <path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <h3 class="pr-howto-card-title">3. Marque como "Já Comprei!"</h3>
-            <p class="pr-howto-card-text">
-              Após comprar, clique em <strong>"Já Comprei!"</strong> no card ou na Sacola. O item será <strong>removido da lista</strong> para evitar presentes repetidos!
-            </p>
-          </div>
         </div>
       </div>
     </section>
