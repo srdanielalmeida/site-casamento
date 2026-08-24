@@ -172,7 +172,7 @@ async function fetchPresentesDataFromSupabase() {
   try {
     const [catsRes, itemsRes] = await Promise.all([
       sb.from('presentes_categorias').select('*').order('ordem', { ascending: true }),
-      sb.from('presentes_itens').select('id,name,image,link,category,coupon,is_purchased,purchased_by,purchased_at,audit_info').order('id', { ascending: true })
+      sb.from('presentes_itens').select('*').order('id', { ascending: true })
     ]);
 
     if (catsRes.error) throw catsRes.error;
