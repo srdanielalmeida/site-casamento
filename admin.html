@@ -65,7 +65,13 @@
           <h2 class="admin-section-title">Confirmações de Presença</h2>
           <div class="admin-section-actions">
             <span class="admin-rsvp-counter" id="rsvp-counter">0 confirmados</span>
-            <button class="admin-btn admin-btn-outline admin-btn-sm" id="btn-export-rsvp">
+            <button type="button" class="admin-btn admin-btn-primary admin-btn-sm" id="btn-add-rsvp">
+              <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
+                <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              + Confirmar Presença
+            </button>
+            <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" id="btn-export-rsvp">
               <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
                 <path d="M8 2v8M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M3 12h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
@@ -73,6 +79,38 @@
               Exportar CSV
             </button>
           </div>
+        </div>
+
+        <!-- Formulário de confirmação/edição manual de RSVP (oculto por padrão) -->
+        <div class="admin-form-card" id="form-rsvp-manual" hidden style="margin-bottom:1.5rem;">
+          <h3 class="admin-form-title" id="form-rsvp-title">Adicionar / Editar Confirmação de Presença</h3>
+          <input type="hidden" id="rsvp-edit-id" value="">
+          <div class="admin-form-grid">
+            <div class="admin-field admin-field-full">
+              <label for="rsvp-manual-nome" class="admin-label">Selecione o Convidado / Família *</label>
+              <select id="rsvp-manual-nome" class="admin-select" required style="width:100%;">
+                <!-- Preenchido dinamicamente pelo JS -->
+              </select>
+            </div>
+            <div class="admin-field admin-field-full">
+              <label for="rsvp-manual-msg" class="admin-label">Mensagem (opcional)</label>
+              <input type="text" id="rsvp-manual-msg" class="admin-input" placeholder="Ex: Confirmado manualmente pelos noivos">
+            </div>
+          </div>
+          <div class="admin-form-actions" style="margin-top:1rem;">
+            <button type="button" class="admin-btn admin-btn-primary" id="btn-save-rsvp-manual">Salvar Presença</button>
+            <button type="button" class="admin-btn admin-btn-ghost" id="btn-cancel-rsvp-manual">Cancelar</button>
+          </div>
+        </div>
+
+        <!-- Toolbar de busca e filtro -->
+        <div class="admin-rsvp-toolbar" style="display:flex; gap:0.8rem; margin-bottom:1.2rem; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="rsvp-search-input" class="admin-input" placeholder="🔍 Buscar convidado por nome..." style="max-width:280px; font-size:0.85rem; padding:0.5rem 0.8rem;">
+          <select id="rsvp-filter-status" class="admin-select" style="max-width:200px; font-size:0.85rem; padding:0.5rem 0.8rem;">
+            <option value="todos">Todos os Convidados</option>
+            <option value="confirmados">Somente Confirmados (✓)</option>
+            <option value="pendentes">Somente Pendentes (⏳)</option>
+          </select>
         </div>
 
         <div class="admin-rsvp-list" id="rsvp-list">
@@ -223,7 +261,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js?v=9.1"></script>
   <script src="js/presentes-data.js?v=9.1"></script>
-  <script src="js/convidados-data.js?v=9.1"></script>
-  <script src="js/admin.js?v=9.1"></script>
+  <script src="js/convidados-data.js?v=9.2"></script>
+  <script src="js/admin.js?v=9.2"></script>
 </body>
 </html>

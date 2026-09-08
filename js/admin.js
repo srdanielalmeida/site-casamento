@@ -731,7 +731,7 @@
 
 
   // ────────────────────────────────────────────────────────────
-  // 7. RSVP — Confirmações de Presença
+  // 7. RSVP — Confirmações de Presença (Gerenciamento Total)
   // ────────────────────────────────────────────────────────────
   const LS_ALL_CONFIRMS = 'rsvp_confirmacoes';
 
@@ -741,6 +741,10 @@
       const lista = JSON.parse(raw || '[]');
       return Array.isArray(lista) ? lista : [];
     } catch (_) { return []; }
+  }
+
+  function saveRsvpListLocal(lista) {
+    localStorage.setItem(LS_ALL_CONFIRMS, JSON.stringify(lista));
   }
 
   function formatarData(isoString) {
@@ -765,6 +769,164 @@
       .replace(/[\s,&+]+/g, ' ')
       .trim();
   }
+
+  function gerarIdRsvp() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  // ── Ações no banco de dados / LocalStorage ──
+  async function desconfirmarPresenca(nome, confId) {
+    if (!confirm(`Tem certeza de que deseja REMOVER a confirmação de "${nome}"?\nIsso permitirá que o convidado confirme presença novamente pelo site.`)) {
+      return;
+    }
+
+    // 1. Remove do localStorage local
+    let lista = getRsvpList();
+    const norm = normalizarNome(nome);
+    lista = lista.filter(c => normalizarNome(c.nome) !== norm && (confId ? c.id !== confId : true));
+    saveRsvpListLocal(lista);
+
+    // 2. Remove do Supabase
+    const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+    if (sb) {
+      try {
+        if (confId) {
+          await sb.from('rsvp_confirmacoes').delete().eq('id', confId);
+        }
+        await sb.from('rsvp_confirmacoes').delete().eq('nome', nome);
+      } catch (err) {
+        console.warn('[Supabase] Erro ao deletar confirmação:', err);
+      }
+    }
+
+    renderRsvpList();
+  }
+
+  async function salvarConfirmacaoManual(nome, mensagem, confId) {
+    const lista = getRsvpList();
+    const norm = normalizarNome(nome);
+    const existingIdx = lista.findIndex(c => normalizarNome(c.nome) === norm || (confId && c.id === confId));
+
+    const idUsado = confId || (existingIdx >= 0 && lista[existingIdx].id) || gerarIdRsvp();
+    const timestamp = new Date().toISOString();
+
+    const novoRegistro = {
+      id: idUsado,
+      nome: nome,
+      mensagem: mensagem || '',
+      timestamp: timestamp,
+      created_at: timestamp
+    };
+
+    if (existingIdx >= 0) {
+      lista[existingIdx] = novoRegistro;
+    } else {
+      lista.push(novoRegistro);
+    }
+    saveRsvpListLocal(lista);
+
+    // Salva no Supabase
+    const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+    if (sb) {
+      try {
+        await sb.from('rsvp_confirmacoes').upsert({
+          id: novoRegistro.id,
+          nome: novoRegistro.nome,
+          mensagem: novoRegistro.mensagem,
+          created_at: novoRegistro.timestamp
+        });
+      } catch (err) {
+        console.warn('[Supabase] Erro ao salvar confirmação manual:', err);
+      }
+    }
+
+    renderRsvpList();
+  }
+
+  // ── Formulário manual de RSVP ──
+  const formRsvpManual = document.getElementById('form-rsvp-manual');
+  const formRsvpTitle  = document.getElementById('form-rsvp-title');
+  const selectRsvpNome = document.getElementById('rsvp-manual-nome');
+  const inputRsvpMsg   = document.getElementById('rsvp-manual-msg');
+  const inputRsvpEditId = document.getElementById('rsvp-edit-id');
+  const btnAddRsvp     = document.getElementById('btn-add-rsvp');
+  const btnSaveRsvp    = document.getElementById('btn-save-rsvp-manual');
+  const btnCancelRsvp  = document.getElementById('btn-cancel-rsvp-manual');
+
+  function popularSelectConvidados(nomePreselecionado) {
+    if (!selectRsvpNome) return;
+    const convidados = (typeof CONVIDADOS_LISTA !== 'undefined' && Array.isArray(CONVIDADOS_LISTA))
+      ? [...CONVIDADOS_LISTA].sort((a, b) => a.localeCompare(b, 'pt-BR'))
+      : [];
+
+    const lista = getRsvpList();
+    const extras = lista.filter(c => c && c.nome && !convidados.some(oficial => normalizarNome(oficial) === normalizarNome(c.nome)));
+
+    const todosNomes = [...convidados, ...extras.map(e => e.nome)];
+
+    selectRsvpNome.innerHTML = '<option value="">-- Selecione o Convidado / Família --</option>' +
+      todosNomes.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+
+    if (nomePreselecionado) {
+      const normPre = normalizarNome(nomePreselecionado);
+      const match = todosNomes.find(n => normalizarNome(n) === normPre);
+      if (match) selectRsvpNome.value = match;
+    }
+  }
+
+  function abrirFormRsvpManual(nomePreselecionado = '', confExistente = null) {
+    if (!formRsvpManual) return;
+    popularSelectConvidados(nomePreselecionado);
+
+    if (confExistente) {
+      if (formRsvpTitle) formRsvpTitle.textContent = `Editar Confirmação: ${confExistente.nome}`;
+      if (inputRsvpEditId) inputRsvpEditId.value = confExistente.id || '';
+      if (selectRsvpNome) selectRsvpNome.value = confExistente.nome;
+      if (inputRsvpMsg) inputRsvpMsg.value = confExistente.mensagem || '';
+    } else {
+      if (formRsvpTitle) formRsvpTitle.textContent = 'Adicionar Confirmação Manual de Presença';
+      if (inputRsvpEditId) inputRsvpEditId.value = '';
+      if (nomePreselecionado && selectRsvpNome) selectRsvpNome.value = nomePreselecionado;
+      if (inputRsvpMsg) inputRsvpMsg.value = '';
+    }
+
+    formRsvpManual.hidden = false;
+    formRsvpManual.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  if (btnAddRsvp) {
+    btnAddRsvp.addEventListener('click', () => abrirFormRsvpManual());
+  }
+
+  if (btnCancelRsvp) {
+    btnCancelRsvp.addEventListener('click', () => {
+      if (formRsvpManual) formRsvpManual.hidden = true;
+    });
+  }
+
+  if (btnSaveRsvp) {
+    btnSaveRsvp.addEventListener('click', async () => {
+      const nome = selectRsvpNome ? selectRsvpNome.value.trim() : '';
+      const msg = inputRsvpMsg ? inputRsvpMsg.value.trim() : '';
+      const editId = inputRsvpEditId ? inputRsvpEditId.value : '';
+
+      if (!nome) {
+        alert('Por favor, selecione o nome do convidado.');
+        if (selectRsvpNome) selectRsvpNome.focus();
+        return;
+      }
+
+      await salvarConfirmacaoManual(nome, msg, editId);
+      if (formRsvpManual) formRsvpManual.hidden = true;
+    });
+  }
+
+  // ── Filtros de Tabela ──
+  const searchRsvpInput  = document.getElementById('rsvp-search-input');
+  const filterRsvpStatus = document.getElementById('rsvp-filter-status');
+
+  if (searchRsvpInput)  searchRsvpInput.addEventListener('input', renderRsvpList);
+  if (filterRsvpStatus) filterRsvpStatus.addEventListener('change', renderRsvpList);
 
   function renderRsvpList() {
     const container = document.getElementById('rsvp-list');
@@ -803,11 +965,26 @@
 
     const baseUrl = window.location.origin + window.location.pathname.replace(/admin\.html.*$/i, '') + 'rsvp.html';
 
+    // Termo de busca e filtro de status
+    const searchTerm = searchRsvpInput ? normalizarNome(searchRsvpInput.value) : '';
+    const statusFilter = filterRsvpStatus ? filterRsvpStatus.value : 'todos';
+
     const renderRow = (nome, conf, isExtra = false) => {
       const isConfirmed = !!conf;
+
+      // Filtra por busca por texto
+      if (searchTerm && !normalizarNome(nome).includes(searchTerm)) {
+        return '';
+      }
+
+      // Filtra por status
+      if (statusFilter === 'confirmados' && !isConfirmed) return '';
+      if (statusFilter === 'pendentes' && isConfirmed) return '';
+
       const guestUrl = `${baseUrl}?c=${encodeURIComponent(nome)}`;
       const rawData = conf ? (conf.timestamp || conf.created_at) : '';
       const dataHora = conf ? formatarData(rawData) : '<span class="admin-rsvp-empty-msg">—</span>';
+      const confId = conf ? (conf.id || '') : '';
 
       return `
         <tr class="${isConfirmed ? 'admin-rsvp-row-confirmed' : 'admin-rsvp-row-pending'}">
@@ -822,7 +999,7 @@
           </td>
           <td style="white-space:nowrap;">
             <button type="button" class="admin-btn admin-btn-outline admin-btn-sm btn-copy-guest-link" data-url="${escapeHtml(guestUrl)}" data-name="${escapeHtml(nome)}" title="Copiar link nominal deste convidado">
-              📋 Copiar Link
+              📋 Link
             </button>
           </td>
           <td class="admin-rsvp-data">
@@ -831,14 +1008,41 @@
           <td class="admin-rsvp-msg">
             ${isConfirmed && conf.mensagem ? escapeHtml(conf.mensagem) : '<span class="admin-rsvp-empty-msg">—</span>'}
           </td>
+          <td style="white-space:nowrap;">
+            <div style="display:flex; gap:0.4rem; align-items:center;">
+              ${isConfirmed ? `
+                <button type="button" class="admin-btn admin-btn-outline admin-btn-sm btn-edit-rsvp" data-name="${escapeHtml(nome)}" title="Editar mensagem ou confirmação">
+                  ✏️ Editar
+                </button>
+                <button type="button" class="admin-btn admin-btn-danger admin-btn-sm btn-delete-rsvp" data-name="${escapeHtml(nome)}" data-id="${escapeHtml(confId)}" title="Remover/desconfirmar esta presença">
+                  ❌ Desconfirmar
+                </button>
+              ` : `
+                <button type="button" class="admin-btn admin-btn-primary admin-btn-sm btn-confirm-rsvp" data-name="${escapeHtml(nome)}" title="Marcar presença manualmente">
+                  ✓ Confirmar
+                </button>
+              `}
+            </div>
+          </td>
         </tr>
       `;
     };
 
+    const rowsHtmlOficiais = convidados.map((nome) => {
+      const conf = mapConfirmados.get(normalizarNome(nome));
+      return renderRow(nome, conf, false);
+    }).join('');
+
+    const rowsHtmlExtras = extrasConfirmados.map((c) => {
+      return renderRow(c.nome, c, true);
+    }).join('');
+
+    const hasRows = (rowsHtmlOficiais + rowsHtmlExtras).trim().length > 0;
+
     container.innerHTML = `
       <div style="margin-bottom:1.2rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
         <span style="font-size:0.85rem; color:var(--text-muted);">
-          💡 <em>Clique em "Copiar Link" para enviar o link direto no WhatsApp do convidado. Ele verá <strong>apenas o seu próprio nome</strong>!</em>
+          💡 <em>Clique em "📋 Link" para enviar o convite no WhatsApp do convidado ou gerencie o status diretamente pelos botões de ação.</em>
         </span>
       </div>
       <table class="admin-rsvp-table">
@@ -849,20 +1053,15 @@
             <th>Link Individual</th>
             <th>Data Confirmação</th>
             <th>Mensagem aos Noivos</th>
+            <th>Ações de Gerenciamento</th>
           </tr>
         </thead>
         <tbody>
-          ${convidados.map((nome) => {
-            const conf = mapConfirmados.get(normalizarNome(nome));
-            return renderRow(nome, conf, false);
-          }).join('')}
-          ${extrasConfirmados.map((c) => {
-            return renderRow(c.nome, c, true);
-          }).join('')}
+          ${hasRows ? (rowsHtmlOficiais + rowsHtmlExtras) : `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">Nenhum convidado encontrado com os filtros selecionados.</td></tr>`}
         </tbody>
       </table>`;
 
-    // Event listeners para os botões de copiar link
+    // Event listeners para copiar link
     container.querySelectorAll('.btn-copy-guest-link').forEach(btn => {
       btn.addEventListener('click', () => {
         const url = btn.dataset.url;
@@ -880,6 +1079,32 @@
         } else {
           prompt(`Link de confirmação para ${name}:`, url);
         }
+      });
+    });
+
+    // Event listeners para Desconfirmar
+    container.querySelectorAll('.btn-delete-rsvp').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const name = btn.dataset.name;
+        const id = btn.dataset.id;
+        desconfirmarPresenca(name, id);
+      });
+    });
+
+    // Event listeners para Confirmar Manualmente
+    container.querySelectorAll('.btn-confirm-rsvp').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const name = btn.dataset.name;
+        abrirFormRsvpManual(name);
+      });
+    });
+
+    // Event listeners para Editar Confirmação
+    container.querySelectorAll('.btn-edit-rsvp').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const name = btn.dataset.name;
+        const conf = mapConfirmados.get(normalizarNome(name));
+        abrirFormRsvpManual(name, conf);
       });
     });
   }

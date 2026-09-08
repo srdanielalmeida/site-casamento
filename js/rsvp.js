@@ -274,8 +274,29 @@
     if (!sb) return;
     try {
       const { data, error } = await sb.from('rsvp_confirmacoes').select('*');
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         localStorage.setItem(LS_ALL_CONFIRMS, JSON.stringify(data));
+
+        // Se o dispositivo possui uma confirmação local salva, verifica se ela ainda existe na nuvem
+        try {
+          const minhaConfRaw = localStorage.getItem(LS_MY_CONFIRM);
+          if (minhaConfRaw) {
+            const minhaConf = JSON.parse(minhaConfRaw);
+            if (minhaConf && minhaConf.nome) {
+              const normMinha = normalizar(minhaConf.nome);
+              const aindaExiste = data.some(item => normalizar(item.nome) === normMinha);
+              if (!aindaExiste) {
+                // Admin desconfirmou este convidado: reseta a confirmação local
+                localStorage.removeItem(LS_MY_CONFIRM);
+                if (form) form.hidden = false;
+                if (successBox) {
+                  successBox.hidden = true;
+                  successBox.classList.remove('visible');
+                }
+              }
+            }
+          }
+        } catch (_) {}
       }
     } catch (_) {}
   }
