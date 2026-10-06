@@ -45,15 +45,18 @@ CREATE TABLE IF NOT EXISTS public.rsvp_confirmacoes (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ==============================================================================
--- POLÍTICAS DE SEGURANÇA (ROW LEVEL SECURITY - RLS)
--- Permite leitura e operações públicas necessárias para convidados anônimos
--- ==============================================================================
+-- 4. TABELA DE LISTA OFICIAL DE CONVIDADOS
+CREATE TABLE IF NOT EXISTS public.convidados_lista (
+  id TEXT PRIMARY KEY,
+  nome TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
 -- Habilita RLS nas tabelas
 ALTER TABLE public.presentes_categorias ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.presentes_itens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rsvp_confirmacoes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.convidados_lista ENABLE ROW LEVEL SECURITY;
 
 -- Remove políticas antigas para evitar duplicidade
 DROP POLICY IF EXISTS "Categorias: Leitura Pública" ON public.presentes_categorias;
@@ -66,6 +69,21 @@ DROP POLICY IF EXISTS "Itens: Gerenciamento Total" ON public.presentes_itens;
 DROP POLICY IF EXISTS "RSVP: Leitura Pública" ON public.rsvp_confirmacoes;
 DROP POLICY IF EXISTS "RSVP: Inserção Pública" ON public.rsvp_confirmacoes;
 DROP POLICY IF EXISTS "RSVP: Gerenciamento Total" ON public.rsvp_confirmacoes;
+
+DROP POLICY IF EXISTS "Convidados: Leitura Pública" ON public.convidados_lista;
+DROP POLICY IF EXISTS "Convidados: Gerenciamento Total" ON public.convidados_lista;
+
+-- --- Políticas para convidados_lista ---
+CREATE POLICY "Convidados: Leitura Pública"
+  ON public.convidados_lista
+  FOR SELECT
+  USING (true);
+
+CREATE POLICY "Convidados: Gerenciamento Total"
+  ON public.convidados_lista
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
 
 -- --- Políticas para presentes_categorias ---
 CREATE POLICY "Categorias: Leitura Pública"
@@ -133,4 +151,12 @@ BEGIN
   ) THEN
     ALTER PUBLICATION supabase_realtime ADD TABLE public.rsvp_confirmacoes;
   END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'convidados_lista'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.convidados_lista;
+  END IF;
 END $$;
+

@@ -311,6 +311,11 @@
   }
   sincronizarConfirmadosDaNuvem();
 
+  // Sincroniza lista oficial de convidados da nuvem em segundo plano
+  if (typeof fetchConvidadosFromSupabase === 'function') {
+    fetchConvidadosFromSupabase().catch(() => {});
+  }
+
 
   // ────────────────────────────────────────────────────────────
   // 7. HELPERS

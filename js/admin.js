@@ -63,13 +63,22 @@
     if (!badge) return;
 
     if (typeof isSupabaseConfigured === 'function' && isSupabaseConfigured()) {
-      badge.textContent = '🟢 Nuvem Conectada (Supabase)';
-      badge.className = 'admin-item-status admin-item-status-disponivel';
-      badge.style.borderColor = 'rgba(76, 175, 80, 0.4)';
+      if (window._supabaseConvidadosTableMissing) {
+        badge.textContent = '🟢 Nuvem Conectada (Tabela de Convidados Pendente)';
+        badge.className = 'admin-item-status';
+        badge.style.borderColor = 'rgba(212, 175, 55, 0.6)';
+        badge.style.color = 'var(--gold-light)';
+      } else {
+        badge.textContent = '🟢 Nuvem Conectada (Supabase 100%)';
+        badge.className = 'admin-item-status admin-item-status-disponivel';
+        badge.style.borderColor = 'rgba(76, 175, 80, 0.4)';
+        badge.style.color = '';
+      }
     } else {
       badge.textContent = '🟡 Modo Local (Offline / localStorage)';
       badge.className = 'admin-item-status';
       badge.style.borderColor = 'rgba(212, 175, 55, 0.4)';
+      badge.style.color = '';
     }
   }
 
@@ -77,13 +86,14 @@
     data = getPresentesData();
     updateSupabaseStatusBadge();
 
-    // Se o Supabase estiver configurado, busca presentes E confirmações RSVP da nuvem
+    // Se o Supabase estiver configurado, busca presentes, confirmações RSVP e convidados da nuvem
     const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
     if (sb) {
       try {
-        const [cloudData, rsvpRes] = await Promise.all([
+        const [cloudData, rsvpRes, cloudConvidados] = await Promise.all([
           typeof fetchPresentesDataFromSupabase === 'function' ? fetchPresentesDataFromSupabase() : null,
-          sb.from('rsvp_confirmacoes').select('*').order('created_at', { ascending: false })
+          sb.from('rsvp_confirmacoes').select('*').order('created_at', { ascending: false }),
+          typeof fetchConvidadosFromSupabase === 'function' ? fetchConvidadosFromSupabase() : null
         ]);
 
         if (cloudData && cloudData.items && cloudData.items.length > 0) {
@@ -882,6 +892,15 @@
     convidados.push(nome);
     salvarListaConvidados(convidados);
 
+    // Salva na nuvem (Supabase)
+    if (typeof adicionarConvidadoNuven === 'function') {
+      try {
+        await adicionarConvidadoNuven(nome);
+      } catch (err) {
+        console.warn('[Supabase] Erro ao sincronizar novo convidado na nuvem:', err);
+      }
+    }
+
     if (jaConfirmar) {
       await salvarConfirmacaoManual(nome, mensagem);
     } else {
@@ -908,6 +927,15 @@
       // Se era um convidado que só constava em confirmação
       convidados.push(novoNome);
       salvarListaConvidados(convidados);
+    }
+
+    // Atualiza na nuvem (Supabase)
+    if (typeof alterarConvidadoNuven === 'function') {
+      try {
+        await alterarConvidadoNuven(nomeAntigo, novoNome);
+      } catch (err) {
+        console.warn('[Supabase] Erro ao sincronizar alteração na nuvem:', err);
+      }
     }
 
     // 2. Atualiza na lista de confirmações (se já tiver confirmação)
@@ -974,10 +1002,19 @@
       }
     }
 
-    // 3. Remove da lista de convidados
+    // 3. Remove da lista de convidados local
     let convidados = getListaConvidados();
     convidados = convidados.filter(c => normalizarNome(c) !== norm);
     salvarListaConvidados(convidados);
+
+    // 4. Remove da nuvem (Supabase)
+    if (typeof removerConvidadoNuven === 'function') {
+      try {
+        await removerConvidadoNuven(nome);
+      } catch (err) {
+        console.warn('[Supabase] Erro ao remover convidado na nuvem:', err);
+      }
+    }
 
     renderRsvpList();
     popularSelectConvidados();
@@ -1290,7 +1327,41 @@
 
     const hasRows = (rowsHtmlOficiais + rowsHtmlExtras).trim().length > 0;
 
+    const sqlScriptParaCopiar = `-- Execute no SQL Editor do seu projeto Supabase:
+CREATE TABLE IF NOT EXISTS public.convidados_lista (
+  id TEXT PRIMARY KEY,
+  nome TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.convidados_lista ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Convidados: Leitura Pública" ON public.convidados_lista;
+DROP POLICY IF EXISTS "Convidados: Gerenciamento Total" ON public.convidados_lista;
+
+CREATE POLICY "Convidados: Leitura Pública" ON public.convidados_lista FOR SELECT USING (true);
+CREATE POLICY "Convidados: Gerenciamento Total" ON public.convidados_lista FOR ALL USING (true) WITH CHECK (true);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'convidados_lista'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.convidados_lista;
+  END IF;
+END $$;`;
+
     container.innerHTML = `
+      ${window._supabaseConvidadosTableMissing ? `
+        <div style="background:rgba(212,175,55,0.08); border:1px solid rgba(212,175,55,0.4); border-radius:8px; padding:0.9rem 1.2rem; margin-bottom:1.2rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.8rem;">
+          <div style="font-size:0.85rem; color:var(--text-cream); line-height:1.5;">
+            <strong style="color:var(--gold-light);">☁️ Sincronização em Nuvem de Convidados:</strong> Para salvar alterações em tempo real no Supabase entre todos os computadores e celulares, crie a tabela <code>convidados_lista</code> no painel Supabase.
+          </div>
+          <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" id="btn-copy-supabase-convidados-sql" style="white-space:nowrap;">
+            📋 Copiar SQL do Supabase
+          </button>
+        </div>
+      ` : ''}
       <div style="margin-bottom:1.2rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
         <span style="font-size:0.85rem; color:var(--text-muted);">
           💡 <em>Gerencie a lista de convidados: use <strong>"+ Novo Convidado"</strong> para adicionar pessoas, <strong>"✏️ Alterar/Editar"</strong> para renomear ou ajustar mensagens, e <strong>"🗑️ Remover"</strong> para excluir.</em>
@@ -1311,6 +1382,22 @@
           ${hasRows ? (rowsHtmlOficiais + rowsHtmlExtras) : `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">Nenhum convidado encontrado com os filtros selecionados.</td></tr>`}
         </tbody>
       </table>`;
+
+    // Event listener para copiar SQL do Supabase
+    const btnCopySql = container.querySelector('#btn-copy-supabase-convidados-sql');
+    if (btnCopySql) {
+      btnCopySql.addEventListener('click', () => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(sqlScriptParaCopiar).then(() => {
+            const orig = btnCopySql.textContent;
+            btnCopySql.textContent = '✓ SQL Copiado!';
+            setTimeout(() => { btnCopySql.textContent = orig; }, 2500);
+          });
+        } else {
+          prompt('Copie o comando SQL abaixo para colar no SQL Editor do Supabase:', sqlScriptParaCopiar);
+        }
+      });
+    }
 
     // Event listeners para copiar link
     container.querySelectorAll('.btn-copy-guest-link').forEach(btn => {
@@ -1565,13 +1652,27 @@ var CONVIDADOS_LISTA = getConvidadosData();
   // ── Restaurar Convidados Padrão ──
   const btnResetConvidados = document.getElementById('btn-reset-convidados');
   if (btnResetConvidados) {
-    btnResetConvidados.addEventListener('click', () => {
+    btnResetConvidados.addEventListener('click', async () => {
       if (confirm('Restaurar a lista de convidados para a lista padrão original?\n(As confirmações de presença já registradas no banco de dados NÃO serão apagadas).')) {
         if (typeof resetarConvidadosData === 'function') {
           resetarConvidadosData();
         } else {
           localStorage.removeItem('convidados_lista');
         }
+
+        // Se Supabase ativo, reseta também na nuvem
+        const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+        if (sb) {
+          try {
+            await sb.from('convidados_lista').delete().neq('id', '');
+            if (typeof bootstrapConvidadosNoSupabase === 'function') {
+              await bootstrapConvidadosNoSupabase(CONVIDADOS_DEFAULT_LISTA);
+            }
+          } catch (e) {
+            console.warn('[Supabase] Erro ao resetar convidados na nuvem:', e);
+          }
+        }
+
         renderRsvpList();
         popularSelectConvidados();
       }
