@@ -54,9 +54,14 @@
   // ────────────────────────────────────────────────────────────
   // 4. LISTA DE CONVIDADOS & HELPERS DE BUSCA INTELIGENTE
   // ────────────────────────────────────────────────────────────
-  const listaOficial = (typeof CONVIDADOS_LISTA !== 'undefined' && Array.isArray(CONVIDADOS_LISTA))
-    ? CONVIDADOS_LISTA
-    : [];
+  function obterListaOficial() {
+    if (typeof getConvidadosData === 'function') {
+      return getConvidadosData();
+    }
+    return (typeof CONVIDADOS_LISTA !== 'undefined' && Array.isArray(CONVIDADOS_LISTA))
+      ? CONVIDADOS_LISTA
+      : [];
+  }
 
   function normalizar(str) {
     return String(str || '')
@@ -86,6 +91,7 @@
     if (!normTermo || normTermo.length < 2) return [];
 
     const confirmados = obterConfirmados();
+    const listaOficial = obterListaOficial();
 
     return listaOficial.filter(nome => {
       const normNome = normalizar(nome);
@@ -105,6 +111,8 @@
   function validarNomeConvidado(termo) {
     const normTermo = normalizar(termo);
     if (!normTermo) return null;
+
+    const listaOficial = obterListaOficial();
 
     // 1. Busca exata normalizada (ex: "flavio" -> "Flávio")
     const exato = listaOficial.find(c => normalizar(c) === normTermo);
@@ -131,6 +139,7 @@
     if (!param) return null;
 
     const query = decodeURIComponent(param).trim();
+    const listaOficial = obterListaOficial();
 
     // Busca por número de índice (1 a N)
     const num = parseInt(query, 10);

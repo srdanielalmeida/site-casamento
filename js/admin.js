@@ -774,32 +774,55 @@
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
 
+  // ── Convidados Data Helper ──
+  function getListaConvidados() {
+    if (typeof getConvidadosData === 'function') {
+      return getConvidadosData();
+    }
+    return (typeof CONVIDADOS_LISTA !== 'undefined' && Array.isArray(CONVIDADOS_LISTA))
+      ? [...CONVIDADOS_LISTA]
+      : [];
+  }
+
+  function salvarListaConvidados(lista) {
+    if (typeof saveConvidadosData === 'function') {
+      saveConvidadosData(lista);
+    } else {
+      localStorage.setItem('convidados_lista', JSON.stringify(lista));
+      if (typeof CONVIDADOS_LISTA !== 'undefined') {
+        CONVIDADOS_LISTA = lista;
+      }
+    }
+  }
+
   // ── Ações no banco de dados / LocalStorage ──
   async function desconfirmarPresenca(nome, confId) {
-    if (!confirm(`Tem certeza de que deseja REMOVER a confirmação de "${nome}"?\nIsso permitirá que o convidado confirme presença novamente pelo site.`)) {
+    if (!confirm(`Deseja desmarcar a confirmação de "${nome}"?\nO convidado continuará na lista de presença como "Pendente" e poderá confirmar novamente.`)) {
       return;
     }
 
-    // 1. Remove do localStorage local
+    // 1. Remove do cache local de confirmações
     let lista = getRsvpList();
     const norm = normalizarNome(nome);
     lista = lista.filter(c => normalizarNome(c.nome) !== norm && (confId ? c.id !== confId : true));
     saveRsvpListLocal(lista);
 
-    // 2. Remove do Supabase
+    // 2. Remove do Supabase de forma segura (somente o registro correspondente)
     const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
     if (sb) {
       try {
         if (confId) {
           await sb.from('rsvp_confirmacoes').delete().eq('id', confId);
+        } else {
+          await sb.from('rsvp_confirmacoes').delete().eq('nome', nome);
         }
-        await sb.from('rsvp_confirmacoes').delete().eq('nome', nome);
       } catch (err) {
-        console.warn('[Supabase] Erro ao deletar confirmação:', err);
+        console.warn('[Supabase] Erro ao desconfirmar presença:', err);
       }
     }
 
     renderRsvpList();
+    popularSelectConvidados();
   }
 
   async function salvarConfirmacaoManual(nome, mensagem, confId) {
@@ -808,7 +831,7 @@
     const existingIdx = lista.findIndex(c => normalizarNome(c.nome) === norm || (confId && c.id === confId));
 
     const idUsado = confId || (existingIdx >= 0 && lista[existingIdx].id) || gerarIdRsvp();
-    const timestamp = new Date().toISOString();
+    const timestamp = (existingIdx >= 0 && lista[existingIdx].timestamp) || new Date().toISOString();
 
     const novoRegistro = {
       id: idUsado,
@@ -825,7 +848,7 @@
     }
     saveRsvpListLocal(lista);
 
-    // Salva no Supabase
+    // Salva no Supabase de forma segura
     const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
     if (sb) {
       try {
@@ -841,6 +864,228 @@
     }
 
     renderRsvpList();
+    popularSelectConvidados();
+  }
+
+  // ── Adicionar, Alterar e Remover Convidado da Lista ──
+  async function adicionarNovoConvidado(nome, jaConfirmar, mensagem) {
+    nome = (nome || '').trim();
+    if (!nome) return;
+
+    let convidados = getListaConvidados();
+    const norm = normalizarNome(nome);
+    if (convidados.some(c => normalizarNome(c) === norm)) {
+      alert(`O convidado "${nome}" já consta na lista de presença.`);
+      return;
+    }
+
+    convidados.push(nome);
+    salvarListaConvidados(convidados);
+
+    if (jaConfirmar) {
+      await salvarConfirmacaoManual(nome, mensagem);
+    } else {
+      renderRsvpList();
+      popularSelectConvidados();
+    }
+  }
+
+  async function alterarConvidado(nomeAntigo, novoNome, novaMensagem) {
+    nomeAntigo = (nomeAntigo || '').trim();
+    novoNome = (novoNome || '').trim();
+    if (!nomeAntigo || !novoNome) return;
+
+    const normAntigo = normalizarNome(nomeAntigo);
+    const normNovo = normalizarNome(novoNome);
+
+    // 1. Atualiza na lista de convidados (se existir nela)
+    let convidados = getListaConvidados();
+    const idx = convidados.findIndex(c => normalizarNome(c) === normAntigo);
+    if (idx >= 0) {
+      convidados[idx] = novoNome;
+      salvarListaConvidados(convidados);
+    } else if (normAntigo !== normNovo && !convidados.some(c => normalizarNome(c) === normNovo)) {
+      // Se era um convidado que só constava em confirmação
+      convidados.push(novoNome);
+      salvarListaConvidados(convidados);
+    }
+
+    // 2. Atualiza na lista de confirmações (se já tiver confirmação)
+    let listaConfirmados = getRsvpList();
+    const confIdx = listaConfirmados.findIndex(c => normalizarNome(c.nome) === normAntigo);
+    if (confIdx >= 0) {
+      const conf = listaConfirmados[confIdx];
+      conf.nome = novoNome;
+      if (typeof novaMensagem === 'string') {
+        conf.mensagem = novaMensagem;
+      }
+      saveRsvpListLocal(listaConfirmados);
+
+      // Atualiza de forma segura no Supabase mantendo ID e data intactos
+      const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+      if (sb && conf.id) {
+        try {
+          await sb.from('rsvp_confirmacoes').update({
+            nome: novoNome,
+            mensagem: conf.mensagem || ''
+          }).eq('id', conf.id);
+        } catch (err) {
+          console.warn('[Supabase] Erro ao atualizar nome na confirmação:', err);
+        }
+      }
+    }
+
+    renderRsvpList();
+    popularSelectConvidados();
+  }
+
+  async function removerConvidadoDaLista(nome, confExistente) {
+    nome = (nome || '').trim();
+    if (!nome) return;
+
+    const norm = normalizarNome(nome);
+
+    if (confExistente) {
+      if (!confirm(`"${nome}" já confirmou presença no casamento.\n\nTem certeza de que deseja remover esta pessoa da lista de presença e excluir sua confirmação?`)) {
+        return;
+      }
+
+      // 1. Remove confirmação local
+      let lista = getRsvpList();
+      lista = lista.filter(c => normalizarNome(c.nome) !== norm && (confExistente.id ? c.id !== confExistente.id : true));
+      saveRsvpListLocal(lista);
+
+      // 2. Remove confirmação do Supabase cirurgicamente
+      const sb = typeof getSupabaseClient === 'function' ? getSupabaseClient() : null;
+      if (sb) {
+        try {
+          if (confExistente.id) {
+            await sb.from('rsvp_confirmacoes').delete().eq('id', confExistente.id);
+          } else {
+            await sb.from('rsvp_confirmacoes').delete().eq('nome', nome);
+          }
+        } catch (err) {
+          console.warn('[Supabase] Erro ao deletar confirmação:', err);
+        }
+      }
+    } else {
+      if (!confirm(`Tem certeza de que deseja remover "${nome}" da lista de presença?`)) {
+        return;
+      }
+    }
+
+    // 3. Remove da lista de convidados
+    let convidados = getListaConvidados();
+    convidados = convidados.filter(c => normalizarNome(c) !== norm);
+    salvarListaConvidados(convidados);
+
+    renderRsvpList();
+    popularSelectConvidados();
+  }
+
+  // ── Formulário de Adicionar / Alterar Convidado na Lista ──
+  const formConvidado        = document.getElementById('form-convidado');
+  const formConvidadoTitle   = document.getElementById('form-convidado-title');
+  const inputConvidadoOrig   = document.getElementById('convidado-edit-orig-nome');
+  const inputConvidadoNome   = document.getElementById('convidado-nome-input');
+  const wrapConfirmar        = document.getElementById('convidado-confirmar-wrap');
+  const chkConfirmar         = document.getElementById('convidado-confirmar-checkbox');
+  const wrapMsg              = document.getElementById('convidado-msg-wrap');
+  const inputMsg             = document.getElementById('convidado-msg-input');
+  const btnSaveConvidado     = document.getElementById('btn-save-convidado');
+  const btnCancelConvidado   = document.getElementById('btn-cancel-convidado');
+  const btnAddConvidado      = document.getElementById('btn-add-convidado');
+
+  if (chkConfirmar) {
+    chkConfirmar.addEventListener('change', () => {
+      if (wrapMsg) wrapMsg.hidden = !chkConfirmar.checked;
+    });
+  }
+
+  function abrirFormNovoConvidado() {
+    if (!formConvidado) return;
+    if (formRsvpManual) formRsvpManual.hidden = true;
+
+    if (formConvidadoTitle) formConvidadoTitle.textContent = 'Adicionar Convidado à Lista de Presença';
+    if (inputConvidadoOrig) inputConvidadoOrig.value = '';
+    if (inputConvidadoNome) inputConvidadoNome.value = '';
+    if (wrapConfirmar) wrapConfirmar.hidden = false;
+    if (chkConfirmar) chkConfirmar.checked = false;
+    if (wrapMsg) wrapMsg.hidden = true;
+    if (inputMsg) inputMsg.value = '';
+
+    formConvidado.hidden = false;
+    formConvidado.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (inputConvidadoNome) inputConvidadoNome.focus();
+  }
+
+  function abrirFormEditarConvidado(nome, confExistente) {
+    if (!formConvidado) return;
+    if (formRsvpManual) formRsvpManual.hidden = true;
+
+    if (formConvidadoTitle) {
+      formConvidadoTitle.textContent = confExistente
+        ? `Editar Convidado (Confirmado): ${nome}`
+        : `Alterar Convidado: ${nome}`;
+    }
+    if (inputConvidadoOrig) inputConvidadoOrig.value = nome;
+    if (inputConvidadoNome) inputConvidadoNome.value = nome;
+
+    if (confExistente) {
+      if (wrapConfirmar) wrapConfirmar.hidden = true;
+      if (wrapMsg) wrapMsg.hidden = false;
+      if (inputMsg) inputMsg.value = confExistente.mensagem || '';
+    } else {
+      if (wrapConfirmar) wrapConfirmar.hidden = false;
+      if (chkConfirmar) chkConfirmar.checked = false;
+      if (wrapMsg) wrapMsg.hidden = true;
+      if (inputMsg) inputMsg.value = '';
+    }
+
+    formConvidado.hidden = false;
+    formConvidado.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (inputConvidadoNome) inputConvidadoNome.focus();
+  }
+
+  if (btnAddConvidado) {
+    btnAddConvidado.addEventListener('click', abrirFormNovoConvidado);
+  }
+
+  if (btnCancelConvidado) {
+    btnCancelConvidado.addEventListener('click', () => {
+      if (formConvidado) formConvidado.hidden = true;
+    });
+  }
+
+  if (btnSaveConvidado) {
+    btnSaveConvidado.addEventListener('click', async () => {
+      const nome = inputConvidadoNome ? inputConvidadoNome.value.trim() : '';
+      if (!nome) {
+        alert('Por favor, informe o nome do convidado / família.');
+        if (inputConvidadoNome) inputConvidadoNome.focus();
+        return;
+      }
+
+      const origNome = inputConvidadoOrig ? inputConvidadoOrig.value.trim() : '';
+      const msg = inputMsg ? inputMsg.value.trim() : '';
+      const deveConfirmar = chkConfirmar ? chkConfirmar.checked : false;
+
+      btnSaveConvidado.disabled = true;
+      const textoOrig = btnSaveConvidado.textContent;
+      btnSaveConvidado.textContent = 'Salvando...';
+
+      try {
+        if (origNome) {
+          await alterarConvidado(origNome, nome, msg);
+        } else {
+          await adicionarNovoConvidado(nome, deveConfirmar, msg);
+        }
+        if (formConvidado) formConvidado.hidden = true;
+      } finally {
+        btnSaveConvidado.disabled = false;
+        btnSaveConvidado.textContent = textoOrig;
+      }
+    });
   }
 
   // ── Formulário manual de RSVP ──
@@ -855,9 +1100,7 @@
 
   function popularSelectConvidados(nomePreselecionado) {
     if (!selectRsvpNome) return;
-    const convidados = (typeof CONVIDADOS_LISTA !== 'undefined' && Array.isArray(CONVIDADOS_LISTA))
-      ? [...CONVIDADOS_LISTA].sort((a, b) => a.localeCompare(b, 'pt-BR'))
-      : [];
+    const convidados = [...getListaConvidados()].sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
     const lista = getRsvpList();
     const extras = lista.filter(c => c && c.nome && !convidados.some(oficial => normalizarNome(oficial) === normalizarNome(c.nome)));
@@ -876,6 +1119,7 @@
 
   function abrirFormRsvpManual(nomePreselecionado = '', confExistente = null) {
     if (!formRsvpManual) return;
+    if (formConvidado) formConvidado.hidden = true;
     popularSelectConvidados(nomePreselecionado);
 
     if (confExistente) {
@@ -934,9 +1178,7 @@
     if (!container) return;
 
     const lista = getRsvpList();
-    const convidados = (typeof CONVIDADOS_LISTA !== 'undefined' && Array.isArray(CONVIDADOS_LISTA))
-      ? [...CONVIDADOS_LISTA].sort((a, b) => a.localeCompare(b, 'pt-BR'))
-      : [];
+    const convidados = [...getListaConvidados()].sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
     // Mapa de confirmações por nome normalizado
     const mapConfirmados = new Map();
@@ -998,7 +1240,7 @@
             ${isExtra ? '<span style="font-size:0.72rem; color:var(--gold-light); display:block; opacity:0.8;">(Confirmação em Nuvem)</span>' : ''}
           </td>
           <td style="white-space:nowrap;">
-            <button type="button" class="admin-btn admin-btn-outline admin-btn-sm btn-copy-guest-link" data-url="${escapeHtml(guestUrl)}" data-name="${escapeHtml(nome)}" title="Copiar link nominal deste convidado">
+            <button type="button" class="admin-btn admin-btn-outline admin-btn-sm btn-copy-guest-link" data-url="${escapeHtml(guestUrl)}" data-name="${escapeHtml(nome)}" title="Copiar link individual deste convidado">
               📋 Link
             </button>
           </td>
@@ -1009,17 +1251,26 @@
             ${isConfirmed && conf.mensagem ? escapeHtml(conf.mensagem) : '<span class="admin-rsvp-empty-msg">—</span>'}
           </td>
           <td style="white-space:nowrap;">
-            <div style="display:flex; gap:0.4rem; align-items:center;">
+            <div style="display:flex; gap:0.4rem; align-items:center; flex-wrap:wrap;">
               ${isConfirmed ? `
-                <button type="button" class="admin-btn admin-btn-outline admin-btn-sm btn-edit-rsvp" data-name="${escapeHtml(nome)}" title="Editar mensagem ou confirmação">
+                <button type="button" class="admin-btn admin-btn-outline admin-btn-sm btn-edit-guest" data-name="${escapeHtml(nome)}" title="Alterar nome ou mensagem">
                   ✏️ Editar
                 </button>
-                <button type="button" class="admin-btn admin-btn-danger admin-btn-sm btn-delete-rsvp" data-name="${escapeHtml(nome)}" data-id="${escapeHtml(confId)}" title="Remover/desconfirmar esta presença">
-                  ❌ Desconfirmar
+                <button type="button" class="admin-btn admin-btn-ghost admin-btn-sm btn-unconfirm-rsvp" data-name="${escapeHtml(nome)}" data-id="${escapeHtml(confId)}" title="Tornar pendente (remover confirmação)">
+                  ↩️ Desconfirmar
+                </button>
+                <button type="button" class="admin-btn admin-btn-danger admin-btn-sm btn-remove-guest" data-name="${escapeHtml(nome)}" data-id="${escapeHtml(confId)}" title="Remover da lista de convidados">
+                  🗑️ Remover
                 </button>
               ` : `
                 <button type="button" class="admin-btn admin-btn-primary admin-btn-sm btn-confirm-rsvp" data-name="${escapeHtml(nome)}" title="Marcar presença manualmente">
                   ✓ Confirmar
+                </button>
+                <button type="button" class="admin-btn admin-btn-outline admin-btn-sm btn-edit-guest" data-name="${escapeHtml(nome)}" title="Alterar nome do convidado">
+                  ✏️ Alterar
+                </button>
+                <button type="button" class="admin-btn admin-btn-danger admin-btn-sm btn-remove-guest" data-name="${escapeHtml(nome)}" data-id="" title="Remover da lista de convidados">
+                  🗑️ Remover
                 </button>
               `}
             </div>
@@ -1042,7 +1293,7 @@
     container.innerHTML = `
       <div style="margin-bottom:1.2rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
         <span style="font-size:0.85rem; color:var(--text-muted);">
-          💡 <em>Clique em "📋 Link" para enviar o convite no WhatsApp do convidado ou gerencie o status diretamente pelos botões de ação.</em>
+          💡 <em>Gerencie a lista de convidados: use <strong>"+ Novo Convidado"</strong> para adicionar pessoas, <strong>"✏️ Alterar/Editar"</strong> para renomear ou ajustar mensagens, e <strong>"🗑️ Remover"</strong> para excluir.</em>
         </span>
       </div>
       <table class="admin-rsvp-table">
@@ -1082,8 +1333,8 @@
       });
     });
 
-    // Event listeners para Desconfirmar
-    container.querySelectorAll('.btn-delete-rsvp').forEach(btn => {
+    // Event listeners para Desconfirmar (manter na lista, mas remover confirmação)
+    container.querySelectorAll('.btn-unconfirm-rsvp').forEach(btn => {
       btn.addEventListener('click', () => {
         const name = btn.dataset.name;
         const id = btn.dataset.id;
@@ -1099,12 +1350,21 @@
       });
     });
 
-    // Event listeners para Editar Confirmação
-    container.querySelectorAll('.btn-edit-rsvp').forEach(btn => {
+    // Event listeners para Editar / Alterar Convidado
+    container.querySelectorAll('.btn-edit-guest').forEach(btn => {
       btn.addEventListener('click', () => {
         const name = btn.dataset.name;
         const conf = mapConfirmados.get(normalizarNome(name));
-        abrirFormRsvpManual(name, conf);
+        abrirFormEditarConvidado(name, conf);
+      });
+    });
+
+    // Event listeners para Remover da Lista
+    container.querySelectorAll('.btn-remove-guest').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const name = btn.dataset.name;
+        const conf = mapConfirmados.get(normalizarNome(name));
+        removerConvidadoDaLista(name, conf);
       });
     });
   }
@@ -1223,6 +1483,98 @@ const PRESENTES_DEFAULT_DATA = ${JSON.stringify(data, null, 2)};
         btnSyncCloud.textContent = '✓ Sincronizado!';
         setTimeout(() => { btnSyncCloud.textContent = '🔄 Sincronizar com a Nuvem'; }, 2000);
       }, 600);
+    });
+  }
+
+  // ── Exportar convidados-data.js ──
+  const btnExportConvidados = document.getElementById('btn-export-convidados-file');
+  if (btnExportConvidados) {
+    btnExportConvidados.addEventListener('click', () => {
+      const convidadosAtuais = getListaConvidados();
+      const code = `/* ============================================================
+   Lista Oficial de Convidados — Daniel & Franciellen Maria
+   ============================================================ */
+
+const CONVIDADOS_DEFAULT_LISTA = ${JSON.stringify(convidadosAtuais, null, 2)};
+
+const LS_CONVIDADOS_LISTA = 'convidados_lista';
+
+/**
+ * Retorna a lista atual de convidados (do localStorage ou padrão).
+ * @returns {string[]}
+ */
+function getConvidadosData() {
+  try {
+    const raw = localStorage.getItem(LS_CONVIDADOS_LISTA);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn('[Convidados] Erro ao ler lista do localStorage:', e);
+  }
+  return [...CONVIDADOS_DEFAULT_LISTA];
+}
+
+/**
+ * Salva a lista de convidados no localStorage e atualiza a variável global.
+ * @param {string[]} lista
+ */
+function saveConvidadosData(lista) {
+  try {
+    if (Array.isArray(lista)) {
+      localStorage.setItem(LS_CONVIDADOS_LISTA, JSON.stringify(lista));
+      CONVIDADOS_LISTA = lista;
+    }
+  } catch (e) {
+    console.warn('[Convidados] Erro ao salvar lista no localStorage:', e);
+  }
+}
+
+/**
+ * Restaura a lista de convidados para o padrão inicial.
+ * @returns {string[]}
+ */
+function resetarConvidadosData() {
+  try {
+    localStorage.removeItem(LS_CONVIDADOS_LISTA);
+    CONVIDADOS_LISTA = [...CONVIDADOS_DEFAULT_LISTA];
+    return CONVIDADOS_LISTA;
+  } catch (e) {
+    console.warn('[Convidados] Erro ao resetar lista:', e);
+    return [...CONVIDADOS_DEFAULT_LISTA];
+  }
+}
+
+// Inicializa a variável global com dados atualizados
+var CONVIDADOS_LISTA = getConvidadosData();
+`;
+      const blob = new Blob([code], { type: 'application/javascript;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement('a'), {
+        href: url,
+        download: 'convidados-data.js',
+      });
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  // ── Restaurar Convidados Padrão ──
+  const btnResetConvidados = document.getElementById('btn-reset-convidados');
+  if (btnResetConvidados) {
+    btnResetConvidados.addEventListener('click', () => {
+      if (confirm('Restaurar a lista de convidados para a lista padrão original?\n(As confirmações de presença já registradas no banco de dados NÃO serão apagadas).')) {
+        if (typeof resetarConvidadosData === 'function') {
+          resetarConvidadosData();
+        } else {
+          localStorage.removeItem('convidados_lista');
+        }
+        renderRsvpList();
+        popularSelectConvidados();
+      }
     });
   }
 

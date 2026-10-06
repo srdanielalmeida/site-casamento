@@ -2,8 +2,9 @@ import http.server
 import socketserver
 import os
 import urllib.parse
+import sys
 
-PORT = 3000
+DEFAULT_PORT = 3000
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 class CleanURLHandler(http.server.SimpleHTTPRequestHandler):
@@ -28,6 +29,21 @@ class CleanURLHandler(http.server.SimpleHTTPRequestHandler):
         return super().do_GET()
 
 if __name__ == '__main__':
-    with socketserver.TCPServer(("", PORT), CleanURLHandler) as httpd:
-        print(f"Servidor rodando em http://localhost:{PORT}")
-        httpd.serve_forever()
+    start_port = int(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PORT
+    candidate_ports = [start_port, 3333, 8080, 8081, 8082]
+    
+    server_started = False
+    for p in candidate_ports:
+        try:
+            httpd = socketserver.TCPServer(("", p), CleanURLHandler)
+            print(f"Servidor rodando em http://localhost:{p}", flush=True)
+            server_started = True
+            with httpd:
+                httpd.serve_forever()
+            break
+        except OSError:
+            continue
+
+    if not server_started:
+        print("Erro: nenhuma porta disponível.", flush=True)
+        sys.exit(1)

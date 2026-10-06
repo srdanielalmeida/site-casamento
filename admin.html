@@ -65,6 +65,12 @@
           <h2 class="admin-section-title">Confirmações de Presença</h2>
           <div class="admin-section-actions">
             <span class="admin-rsvp-counter" id="rsvp-counter">0 confirmados</span>
+            <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" id="btn-add-convidado">
+              <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
+                <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              + Novo Convidado
+            </button>
             <button type="button" class="admin-btn admin-btn-primary admin-btn-sm" id="btn-add-rsvp">
               <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
                 <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -78,6 +84,32 @@
               </svg>
               Exportar CSV
             </button>
+          </div>
+        </div>
+
+        <!-- Formulário para Adicionar / Alterar Convidado na Lista (oculto por padrão) -->
+        <div class="admin-form-card" id="form-convidado" hidden style="margin-bottom:1.5rem;">
+          <h3 class="admin-form-title" id="form-convidado-title">Adicionar Convidado à Lista de Presença</h3>
+          <input type="hidden" id="convidado-edit-orig-nome" value="">
+          <div class="admin-form-grid">
+            <div class="admin-field admin-field-full">
+              <label for="convidado-nome-input" class="admin-label">Nome do Convidado / Família *</label>
+              <input type="text" id="convidado-nome-input" class="admin-input" placeholder="Ex: Tio Carlos &amp; Família ou Larissa Silva" required>
+            </div>
+            <div class="admin-field admin-field-full" id="convidado-confirmar-wrap">
+              <label style="display:inline-flex; align-items:center; gap:0.5rem; cursor:pointer; font-size:0.85rem; color:var(--text-cream); user-select:none;">
+                <input type="checkbox" id="convidado-confirmar-checkbox" style="accent-color:var(--gold-primary); cursor:pointer;">
+                <span>Marcar presença como confirmada agora</span>
+              </label>
+            </div>
+            <div class="admin-field admin-field-full" id="convidado-msg-wrap" hidden>
+              <label for="convidado-msg-input" class="admin-label">Mensagem aos Noivos (opcional)</label>
+              <input type="text" id="convidado-msg-input" class="admin-input" placeholder="Ex: Confirmado manualmente pelos noivos">
+            </div>
+          </div>
+          <div class="admin-form-actions" style="margin-top:1rem;">
+            <button type="button" class="admin-btn admin-btn-primary" id="btn-save-convidado">Salvar</button>
+            <button type="button" class="admin-btn admin-btn-ghost" id="btn-cancel-convidado">Cancelar</button>
           </div>
         </div>
 
@@ -232,6 +264,9 @@
           Quando conectado ao <strong>Supabase</strong>, todos os presentes adicionados e confirmações de presença são salvos em tempo real na nuvem e nunca somem em novos deploys. Você também pode baixar o arquivo <code>presentes-data.js</code> a qualquer momento como backup do código-fonte.
         </p>
         <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
+          <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" id="btn-export-convidados-file">
+            📥 Baixar convidados-data.js
+          </button>
           <button type="button" class="admin-btn admin-btn-outline admin-btn-sm" id="btn-export-presentes-file">
             📥 Baixar presentes-data.js
           </button>
@@ -248,8 +283,9 @@
       <section class="admin-section admin-section-actions-bar">
         <div class="admin-danger-zone">
           <h3 class="admin-danger-title">Zona de Risco</h3>
-          <p class="admin-danger-desc">Restaurar a lista de presentes para os dados padrão. Isso apagará todas as alterações feitas pelo admin.</p>
-          <button class="admin-btn admin-btn-danger admin-btn-sm" id="btn-reset-data">Restaurar Dados Padrão</button>
+          <p class="admin-danger-desc">Restaurar a lista de presentes ou de convidados para os dados padrão.</p>
+          <button class="admin-btn admin-btn-danger admin-btn-sm" id="btn-reset-data">Restaurar Presentes Padrão</button>
+          <button class="admin-btn admin-btn-danger admin-btn-sm" id="btn-reset-convidados" style="margin-top:0.5rem">Restaurar Convidados Padrão</button>
           <button class="admin-btn admin-btn-danger admin-btn-sm" id="btn-clear-rsvp" style="margin-top:0.5rem">Limpar Confirmações de Presença</button>
           <button class="admin-btn admin-btn-danger admin-btn-sm" id="btn-clear-comprados" style="margin-top:0.5rem">Limpar Presentes Comprados</button>
         </div>
@@ -261,7 +297,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-config.js?v=9.1"></script>
   <script src="js/presentes-data.js?v=9.1"></script>
-  <script src="js/convidados-data.js?v=9.2"></script>
-  <script src="js/admin.js?v=9.2"></script>
+  <script src="js/convidados-data.js?v=9.3"></script>
+  <script src="js/admin.js?v=9.3"></script>
 </body>
 </html>
